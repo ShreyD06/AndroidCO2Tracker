@@ -37,14 +37,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     lateinit var client: ActivityRecognitionClient
     lateinit var storage: SharedPreferences
 
-//    Intent(this, MyService::class.java).also{intent ->
-//        startService(intent)
-//    }
 
     lateinit var button: Button
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -109,11 +107,73 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         EventBus.getDefault().unregister(this)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe
     fun onDataReceived(event: ActivityTransitionReceiver.OnReceiverEvent) {
+        // These 2 lines are for debug purposes
         print(event.getEvents())
+        print("----------GOING TO SERVICE-------------")
 
+        val serviceIntentEnter: Intent = Intent(this, MyService::class.java).apply {
+            action=MyService.ENTER
+        }
+        val serviceIntentExit: Intent = Intent(this, MyService::class.java).apply {
+            action=MyService.EXIT
+        }
+
+        fun isLocationEnabled(): Boolean {
+            val locationManager=getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)||locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        }
+
+        fun requestPermission() {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.ACCESS_FINE_LOCATION),
+                100
+            )
+        }
+
+        fun checkPermissions(): Boolean {
+            if(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) {
+                return true
+            }
+            return false
+        }
+        if(checkPermissions()) {
+            if(isLocationEnabled()) {
+                    //latitude and longitude shown here
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    println("Second check passed")
+                }
+                if(event.getEvents()[0] == "ENTER") {
+                    startForegroundService(serviceIntentEnter)
+                }
+
+                else {
+                    startForegroundService(serviceIntentExit)
+                }
+            }
+            else {
+                    //settings open here
+                Toast.makeText(this, "Turn on location", Toast.LENGTH_SHORT).show()
+                val intent=Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+        }
+        else {
+                //request permission
+            requestPermission()
+        }
     }
+
     // when permission is denied
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
@@ -253,7 +313,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     // get the state of switch
     private fun getSwitchState() = storage.getBoolean(ACTIVITY_TRANSITION_STORAGE, false)
 
-    private val serviceIntent: Intent = Intent(applicationContext, MyService::class.java)
+
 
 //    private fun getCurrentLocation() {
 //        if(checkPermissions()) {

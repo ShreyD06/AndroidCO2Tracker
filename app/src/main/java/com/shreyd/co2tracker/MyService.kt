@@ -32,6 +32,16 @@ class MyService: Service() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when(intent?.action) {
+            ENTER -> enter()
+            EXIT -> exit()
+        }
+
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun enter() {
         startForeground(NOTIFICATION_ID, createNotification())
 
 
@@ -53,7 +63,31 @@ class MyService: Service() {
         }
 
         stopSelf()
-        return super.onStartCommand(intent, flags, startId)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun exit() {
+        startForeground(NOTIFICATION_ID, createNotification())
+
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            println("do nothing")
+        }
+        client.lastLocation.addOnSuccessListener { location: Location? ->
+            val latitude: Double? = location?.latitude
+            val longitude: Double? = location?.longitude
+            println("$latitude, $longitude")
+        }
+
+        stopSelf()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -91,5 +125,9 @@ class MyService: Service() {
 
     companion object {
         const val NOTIFICATION_ID = 1
+        const val ENTER = "ENTER"
+        const val EXIT = "EXIT"
     }
+
+
 }
