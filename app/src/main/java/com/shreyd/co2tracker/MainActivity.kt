@@ -153,7 +153,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
                 ) {
                     println("Second check passed")
                 }
-                if(event.getEvents()[0] == "ENTER") {
+                if(event.getEvents()[1] == "ENTER") {
                     startForegroundService(serviceIntentEnter)
                 }
 

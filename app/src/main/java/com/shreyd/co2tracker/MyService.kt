@@ -18,10 +18,19 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.*
 import androidx.core.app.ActivityCompat
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.FileWriter
+import java.io.PrintWriter
+import java.nio.charset.Charset
+import com.google.gson.Gson
+import java.io.File
 
 
 class MyService: Service() {
     private lateinit var client: FusedLocationProviderClient
+    val path = "/json/locations.json"
+    var locations = mutableListOf<Double?>()
     override fun onCreate() {
         super.onCreate()
         client = LocationServices.getFusedLocationProviderClient(this)
@@ -44,6 +53,7 @@ class MyService: Service() {
     fun enter() {
         startForeground(NOTIFICATION_ID, createNotification())
 
+        val gson = Gson()
 
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -59,6 +69,17 @@ class MyService: Service() {
         client.lastLocation.addOnSuccessListener { location: Location? ->
             val latitude: Double? = location?.latitude
             val longitude: Double? = location?.longitude
+//            try {
+//                locations.add(latitude)
+//                locations.add(longitude)
+//                val json = gson.toJson(locations)
+//                println(json)
+//                val file = File(path)
+//                file.writeText(json)
+//                locations.clear()
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
             println("$latitude, $longitude")
         }
 
