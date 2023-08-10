@@ -44,8 +44,8 @@ class ActivityTransitionReceiver : BroadcastReceiver() {
 
                         //print statement is for debugging purposes
                         println(check)
-                        EventBus.getDefault().post(OnReceiverEvent(info))
                         println("sent")
+                        EventBus.getDefault().post(OnReceiverEvent(info))
                     }
                 }
             }

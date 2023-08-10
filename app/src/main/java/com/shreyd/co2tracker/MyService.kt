@@ -18,22 +18,32 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.*
 import androidx.core.app.ActivityCompat
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.FileWriter
-import java.io.PrintWriter
-import java.nio.charset.Charset
-import com.google.gson.Gson
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.io.File
 
 
 class MyService: Service() {
     private lateinit var client: FusedLocationProviderClient
     val path = "/json/locations.json"
-    var locations = mutableListOf<Double?>()
+    private val Context.dataStore by preferencesDataStore(
+        name = "Locations"
+    )
+    private lateinit var scope: CoroutineScope
     override fun onCreate() {
         super.onCreate()
         client = LocationServices.getFusedLocationProviderClient(this)
+        val job = SupervisorJob()
+        scope = CoroutineScope(Dispatchers.IO + job)
+
     }
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -49,11 +59,22 @@ class MyService: Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    private suspend fun writeStore(key: String, value: Double) {
+        val dataStoreKey = doublePreferencesKey(key)
+        dataStore.edit {settings ->
+            settings[dataStoreKey] = value
+        }
+    }
+
+    private suspend fun readStore(key: String): Double? {
+        val dataStoreKey = doublePreferencesKey(key)
+        val preferences = dataStore.data.first()
+        return preferences[dataStoreKey]
+    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun enter() {
         startForeground(NOTIFICATION_ID, createNotification())
 
-        val gson = Gson()
 
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -68,18 +89,19 @@ class MyService: Service() {
         }
         client.lastLocation.addOnSuccessListener { location: Location? ->
             val latitude: Double? = location?.latitude
+            var latitude_new = 0.0
+            if(latitude!=null) {
+                latitude_new = latitude
+            }
             val longitude: Double? = location?.longitude
-//            try {
-//                locations.add(latitude)
-//                locations.add(longitude)
-//                val json = gson.toJson(locations)
-//                println(json)
-//                val file = File(path)
-//                file.writeText(json)
-//                locations.clear()
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
+            var longitude_new = 0.0
+            if(longitude!=null) {
+                longitude_new = longitude
+            }
+            scope.launch {
+                writeStore("LatEnter", latitude_new)
+                writeStore("LongEnter", longitude_new)
+            }
             println("$latitude, $longitude")
         }
 
@@ -105,6 +127,20 @@ class MyService: Service() {
         client.lastLocation.addOnSuccessListener { location: Location? ->
             val latitude: Double? = location?.latitude
             val longitude: Double? = location?.longitude
+            var latitudeExN = 0.0
+            if(latitude!=null) {
+                latitudeExN = latitude
+            }
+            var longitudeExN = 0.0
+            if(longitude!=null) {
+                longitudeExN = longitude
+            }
+            scope.launch {
+                writeStore("LatExit", latitudeExN)
+                writeStore("LongExit", longitudeExN)
+                TODO("Make API Call")
+            }
+            println("EXIT FUNCTION")
             println("$latitude, $longitude")
         }
 
@@ -125,7 +161,6 @@ class MyService: Service() {
             .setContentTitle("Location Service")
             .setContentText("Running")
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setPriority(Notification.PRIORITY_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
 
         return notificationBuilder.build()

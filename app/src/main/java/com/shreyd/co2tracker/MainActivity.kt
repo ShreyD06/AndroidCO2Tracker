@@ -60,6 +60,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             ActivityTransition.ACTIVITY_TRANSITION_ENTER, SystemClock.elapsedRealtimeNanos()
         )
         events.add(transitionEvent)
+        transitionEvent = ActivityTransitionEvent(
+            DetectedActivity.IN_VEHICLE,
+            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
+        )
+        events.add(transitionEvent)
         val result = ActivityTransitionResult(events)
         SafeParcelableSerializer.serializeToIntentExtra(
             result, intent,
@@ -279,7 +284,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
             this,
             Constants.REQUEST_CODE_INTENT_ACTIVITY_TRANSITION,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE
         )
     }
 
