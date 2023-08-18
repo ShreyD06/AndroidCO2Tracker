@@ -13,20 +13,7 @@
         android:layout_centerInParent="true"
         android:layout_margin="10dp">
 
-        <TextView
-            android:id="@+id/tv_Latitude"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Latitude"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
-        <TextView
-            android:id="@+id/tv_Longitude"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Longitude"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display2" />
+
         <Button
             android:id="@+id/btnOpenAct2"
             android:text="Open Second Activity"

@@ -31,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-
+// Create a button that starts the foreground service for activity transition recognition, then add the restart on reboot functionality
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     lateinit var client: ActivityRecognitionClient
@@ -46,31 +46,31 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val intent = Intent(this, ActivityTransitionReceiver::class.java)
-        intent.action = "MYLISTENINGACTION"
-        val events: MutableList<ActivityTransitionEvent> = ArrayList()
-        var transitionEvent: ActivityTransitionEvent
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.STILL,
-            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
-        )
-        events.add(transitionEvent)
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.IN_VEHICLE,
-            ActivityTransition.ACTIVITY_TRANSITION_ENTER, SystemClock.elapsedRealtimeNanos()
-        )
-        events.add(transitionEvent)
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.IN_VEHICLE,
-            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
-        )
-        events.add(transitionEvent)
-        val result = ActivityTransitionResult(events)
-        SafeParcelableSerializer.serializeToIntentExtra(
-            result, intent,
-            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
-        )
-        sendBroadcast(intent)
+//        val intent = Intent(this, ActivityTransitionReceiver::class.java)
+//        intent.action = "MYLISTENINGACTION"
+//        val events: MutableList<ActivityTransitionEvent> = ArrayList()
+//        var transitionEvent: ActivityTransitionEvent
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.STILL,
+//            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events.add(transitionEvent)
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.IN_VEHICLE,
+//            ActivityTransition.ACTIVITY_TRANSITION_ENTER, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events.add(transitionEvent)
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.IN_VEHICLE,
+//            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events.add(transitionEvent)
+//        val result = ActivityTransitionResult(events)
+//        SafeParcelableSerializer.serializeToIntentExtra(
+//            result, intent,
+//            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
+//        )
+//        sendBroadcast(intent)
 
         button = findViewById(R.id.btnOpenAct2)
         button.setOnClickListener {

@@ -8,4 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="Cblue">#42A5FF</color>
+    <color name="primary_beige">#FFFDD0</color>
+    <color name="light_green">#90EE90</color>
 </resources>
