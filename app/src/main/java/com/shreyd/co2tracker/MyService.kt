@@ -14,6 +14,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.*
@@ -121,7 +122,7 @@ class MyService: Service() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
+            //Log.e("startTime", startTime)
             println("do nothing")
         }
         client.lastLocation.addOnSuccessListener { location: Location? ->
@@ -138,7 +139,7 @@ class MyService: Service() {
             scope.launch {
                 writeStore("LatExit", latitudeExN)
                 writeStore("LongExit", longitudeExN)
-                TODO("Make API Call")
+               // TODO("Make API Call")
             }
             println("EXIT FUNCTION")
             println("$latitude, $longitude")
