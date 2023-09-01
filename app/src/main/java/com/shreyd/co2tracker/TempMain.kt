@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -24,6 +25,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.internal.safeparcel.SafeParcelableSerializer
 import com.google.android.gms.location.*
 import com.google.firebase.database.DataSnapshot
@@ -31,6 +33,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.shreyd.co2tracker.databinding.ActivityTempMainBinding
+import com.shreyd.co2tracker.datastore.UserDataStore
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import pub.devrel.easypermissions.AppSettingsDialog
@@ -43,6 +47,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
     lateinit var client: ActivityRecognitionClient
     lateinit var storage: SharedPreferences
+    private val userDataStore by lazy { UserDataStore.getInstance() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,6 +168,16 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             // when permission is already allowed
             requestForUpdates()
         }
+        userDataStoreDemo()
+    }
+
+    private fun userDataStoreDemo() {
+        lifecycleScope.launch {
+            userDataStore.setAuthToken("my tiken is 0")
+
+            userDataStore.getAuthToken()?.let { Log.e("MyTOken: ", it) }
+        }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
