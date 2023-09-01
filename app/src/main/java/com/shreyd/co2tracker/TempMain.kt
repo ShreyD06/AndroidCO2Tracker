@@ -26,6 +26,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.internal.safeparcel.SafeParcelableSerializer
 import com.google.android.gms.location.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.shreyd.co2tracker.databinding.ActivityTempMainBinding
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -64,6 +68,56 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+//        val rawDrives = mutableListOf<Drive>()
+//        val dbRawDrives = FirebaseDatabase.getInstance().getReference("RawDrives")
+//        val synthDrives = mutableListOf<Drive>()
+//
+//        val driveListener = object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                for (ds in dataSnapshot.children) {
+//                    val rdrive = Drive(ds.key,
+//                        listOf(ds.child("startLoc").child("0").value.toString().toDouble(), ds.child("startLoc").child("1").value.toString().toDouble()),
+//                        listOf(ds.child("endLoc").child("0").value.toString().toDouble(), ds.child("endLoc").child("1").value.toString().toDouble()),
+//                        ds.child("startTime").value.toString().toLong(),
+//                        ds.child("endTime").value.toString().toLong())
+//                    rawDrives.add(rdrive)
+//                }
+//                for(i in 0..rawDrives.size - 2) {
+//                    if(rawDrives[i+1].startTime!! - rawDrives[i].endTime!! < 300000) {
+//                        //Synthesize drives
+//                        synthDrives.add(rawDrives[i])
+//                    }
+//                    else {
+//                        val waypoints = mutableListOf<List<Double?>>()
+//                        for(k in 1..synthDrives.size - 2) {
+//                            waypoints.add(synthDrives[k].endLoc)
+//                        }
+//                        val newDrive = Drive("",
+//                            synthDrives[0].startLoc,
+//                            synthDrives[synthDrives.size - 1].endLoc,
+//                            synthDrives[0].startTime,
+//                            synthDrives[synthDrives.size - 1].endTime,
+//                            waypoints
+//                        )
+//                        val dbDrives = FirebaseDatabase.getInstance().getReference("Drives")
+//                        newDrive.id = dbDrives.push().key
+//                        dbDrives.child(newDrive.id!!).setValue(newDrive)
+//                        waypoints.clear()
+//                        synthDrives.clear()
+//                    }
+//                }
+//            }
+//            override fun onCancelled(databaseError: DatabaseError) {
+//                // Getting Post failed, log a message
+//                println("Cancelled")
+//            }
+//        }
+//
+//        dbRawDrives.addValueEventListener(driveListener)
+        //Clear dbRawDrives here
+
+
         val intent = Intent(this, ActivityTransitionReceiver::class.java)
         intent.action = "MYLISTENINGACTION"
         val events: MutableList<ActivityTransitionEvent> = ArrayList()

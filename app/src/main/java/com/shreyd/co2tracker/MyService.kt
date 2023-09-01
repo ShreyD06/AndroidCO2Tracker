@@ -11,26 +11,31 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.IBinder
 import android.location.Location
-import android.location.LocationManager
 import android.os.Build
-import android.provider.Settings
-import android.widget.Toast
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.*
 import androidx.core.app.ActivityCompat
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.doublePreferencesKey
-import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import java.io.File
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-
+data class UserPreferences(
+    val LatEnter: Double?,
+    val LongEnter: Double?,
+    val startTime: String?,
+    val LatExit: Double?,
+    val LongExit: Double?
+)
 class MyService: Service() {
     private lateinit var client: FusedLocationProviderClient
     val path = "/json/locations.json"
@@ -66,10 +71,41 @@ class MyService: Service() {
         }
     }
 
+    private suspend fun writeStoreLong(key: String, value: Long) {
+        val dataStoreKey = longPreferencesKey(key)
+        dataStore.edit {settings ->
+            settings[dataStoreKey] = value
+        }
+    }
+
     private suspend fun readStore(key: String): Double? {
         val dataStoreKey = doublePreferencesKey(key)
         val preferences = dataStore.data.first()
         return preferences[dataStoreKey]
+    }
+
+    private suspend fun readStoreLong(key: String): Long? {
+        val dataStoreKey = longPreferencesKey(key)
+        val preferences = dataStore.data.first()
+        return preferences[dataStoreKey]
+    }
+
+    private fun readFullStore(): Flow<UserPreferences> {
+        return dataStore.data.map { pref ->
+            UserPreferences(pref[doublePreferencesKey("LatEnter")],
+                pref[doublePreferencesKey("LongEnter")],
+                pref[stringPreferencesKey("startTime")],
+                pref[doublePreferencesKey("LatExit")],
+                pref[doublePreferencesKey("LongExit")]
+            )
+
+        }
+    }
+
+    private suspend fun deleteAllPreferences() {
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
     }
     @RequiresApi(Build.VERSION_CODES.O)
     fun enter() {
@@ -90,6 +126,7 @@ class MyService: Service() {
         client.lastLocation.addOnSuccessListener { location: Location? ->
             val latitude: Double? = location?.latitude
             var latitude_new = 0.0
+
             if(latitude!=null) {
                 latitude_new = latitude
             }
@@ -98,9 +135,16 @@ class MyService: Service() {
             if(longitude!=null) {
                 longitude_new = longitude
             }
+
             scope.launch {
+//                deleteAllPreferences()
+//                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+//                val startTime = LocalDateTime.now().format(formatter)
+                val startTime = System.currentTimeMillis()
                 writeStore("LatEnter", latitude_new)
                 writeStore("LongEnter", longitude_new)
+                writeStoreLong("startTime", startTime)
+
             }
             println("$latitude, $longitude")
         }
@@ -127,18 +171,47 @@ class MyService: Service() {
         client.lastLocation.addOnSuccessListener { location: Location? ->
             val latitude: Double? = location?.latitude
             val longitude: Double? = location?.longitude
+            val startCoordinates = mutableListOf<Double?>()
+            val endCoordinates = mutableListOf<Double?>()
             var latitudeExN = 0.0
             if(latitude!=null) {
-                latitudeExN = latitude
+                latitudeExN = latitude + 0.5
             }
             var longitudeExN = 0.0
             if(longitude!=null) {
-                longitudeExN = longitude
+                longitudeExN = longitude + 2.3
             }
             scope.launch {
                 writeStore("LatExit", latitudeExN)
                 writeStore("LongExit", longitudeExN)
-                TODO("Make API Call")
+//                readFullStore().catch{e -> e.printStackTrace()}.collect {up ->
+//                    println("STARTING")
+//                    startCoordinates.addAll(arrayOf(up.LatEnter, up.LongEnter))
+//                    println(startCoordinates)
+//                    println("Done 1")
+//                    endCoordinates.addAll(arrayOf(up.LatExit, up.LongExit))
+//                    println(endCoordinates)
+//                    println("Done 2")
+//                    startTime = up.startTime
+//                    println(startTime)
+//                    println("Done 3")
+//                    this.cancel()
+//                }
+                startCoordinates.addAll(arrayOf(readStore("LatEnter"), readStore("LongEnter")))
+                endCoordinates.addAll(arrayOf(readStore("LatExit"), readStore("LongExit")))
+                val startTime = readStoreLong("startTime")
+                println(startCoordinates)
+                println(endCoordinates)
+                println(startTime)
+                println("Done reading store")
+
+//                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                val endTime = System.currentTimeMillis()
+
+                val dbRawDrives = FirebaseDatabase.getInstance().getReference("RawDrives")
+                val drive = Drive("", startCoordinates, endCoordinates, startTime, endTime)
+                drive.id = dbRawDrives.push().key
+                dbRawDrives.child(drive.id!!).setValue(drive)
             }
             println("EXIT FUNCTION")
             println("$latitude, $longitude")
