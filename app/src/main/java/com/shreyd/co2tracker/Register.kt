@@ -27,7 +27,8 @@ class Register : AppCompatActivity() {
 
         autocompleteTV.onItemClickListener = AdapterView.OnItemClickListener{ adapterView, view, i, l ->
             println("$i, $l")
-            carType = cars[i-1]
+            carType = cars[i]
+            println(carType)
         }
 
         val button = findViewById<Button>(R.id.registerSubmitButton)
@@ -37,7 +38,7 @@ class Register : AppCompatActivity() {
             val id = email.replace(".", "").replace("#", "")
                 .replace("$", "").replace("[", "").replace("]", "")
             println("----------------$id-------------")
-            val user = User(
+            val user = com.shreyd.co2tracker.User(
                 id = id,
                 email = email,
                 name = findViewById<EditText>(R.id.nameEditText).text.toString(),
@@ -47,7 +48,7 @@ class Register : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this) {task ->
                 if (task.isSuccessful) {
                     addUser(user)
-                    val mainIntent = Intent(this, MainActivity::class.java)
+                    val mainIntent = Intent(this, TempMain::class.java)
                     startActivity(mainIntent)
                     finish()
                 }

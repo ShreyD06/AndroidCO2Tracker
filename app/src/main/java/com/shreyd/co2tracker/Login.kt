@@ -26,7 +26,7 @@ class Login : AppCompatActivity() {
             val password = findViewById<EditText>(R.id.passwordEditText).text.toString()
             auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {task ->
                 if(task.isSuccessful) {
-                    val mainIntent = Intent(this, MainActivity::class.java)
+                    val mainIntent = Intent(this, TempMain::class.java)
                     startActivity(mainIntent)
                 }
                 else {

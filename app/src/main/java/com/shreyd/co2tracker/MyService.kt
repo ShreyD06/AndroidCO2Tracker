@@ -26,6 +26,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
+import com.shreyd.co2tracker.datastore.UserDataStore
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -46,6 +47,7 @@ class MyService: Service() {
     private val Context.dataStore by preferencesDataStore(
         name = "Locations"
     )
+    private val userDataStore by lazy { UserDataStore.getInstance() }
     private lateinit var scope: CoroutineScope
     override fun onCreate() {
         super.onCreate()
@@ -68,49 +70,49 @@ class MyService: Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private suspend fun writeStore(key: String, value: Double) {
-        val dataStoreKey = doublePreferencesKey(key)
-        dataStore.edit {settings ->
-            settings[dataStoreKey] = value
-        }
-    }
-
-    private suspend fun writeStoreLong(key: String, value: Long) {
-        val dataStoreKey = longPreferencesKey(key)
-        dataStore.edit {settings ->
-            settings[dataStoreKey] = value
-        }
-    }
-
-    private suspend fun readStore(key: String): Double? {
-        val dataStoreKey = doublePreferencesKey(key)
-        val preferences = dataStore.data.first()
-        return preferences[dataStoreKey]
-    }
-
-    private suspend fun readStoreLong(key: String): Long? {
-        val dataStoreKey = longPreferencesKey(key)
-        val preferences = dataStore.data.first()
-        return preferences[dataStoreKey]
-    }
-
-    private fun readFullStore(): Flow<UserPreferences> {
-        return dataStore.data.map { pref ->
-            UserPreferences(pref[doublePreferencesKey("LatEnter")],
-                pref[doublePreferencesKey("LongEnter")],
-                pref[stringPreferencesKey("startTime")],
-                pref[doublePreferencesKey("LatExit")],
-                pref[doublePreferencesKey("LongExit")]
-            )
-
-        }
-    }
-
-    private suspend fun deleteAllPreferences() {
-        dataStore.edit { preferences ->
-            preferences.clear()
-        }
-    }
+//    private suspend fun writeStore(key: String, value: Double) {
+//        val dataStoreKey = doublePreferencesKey(key)
+//        dataStore.edit {settings ->
+//            settings[dataStoreKey] = value
+//        }
+//    }
+//
+//    private suspend fun writeStoreLong(key: String, value: Long) {
+//        val dataStoreKey = longPreferencesKey(key)
+//        dataStore.edit {settings ->
+//            settings[dataStoreKey] = value
+//        }
+//    }
+//
+//    private suspend fun readStore(key: String): Double? {
+//        val dataStoreKey = doublePreferencesKey(key)
+//        val preferences = dataStore.data.first()
+//        return preferences[dataStoreKey]
+//    }
+//
+//    private suspend fun readStoreLong(key: String): Long? {
+//        val dataStoreKey = longPreferencesKey(key)
+//        val preferences = dataStore.data.first()
+//        return preferences[dataStoreKey]
+//    }
+//
+//    private fun readFullStore(): Flow<UserPreferences> {
+//        return dataStore.data.map { pref ->
+//            UserPreferences(pref[doublePreferencesKey("LatEnter")],
+//                pref[doublePreferencesKey("LongEnter")],
+//                pref[stringPreferencesKey("startTime")],
+//                pref[doublePreferencesKey("LatExit")],
+//                pref[doublePreferencesKey("LongExit")]
+//            )
+//
+//        }
+//    }
+//
+//    private suspend fun deleteAllPreferences() {
+//        dataStore.edit { preferences ->
+//            preferences.clear()
+//        }
+//    }
     @RequiresApi(Build.VERSION_CODES.O)
     fun enter() {
         startForeground(NOTIFICATION_ID, createNotification())
@@ -140,17 +142,18 @@ class MyService: Service() {
                 longitude_new = longitude
             }
 
+            println("Storing Data")
             scope.launch {
 //                deleteAllPreferences()
 //                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 //                val startTime = LocalDateTime.now().format(formatter)
                 val startTime = System.currentTimeMillis()
-                writeStore("LatEnter", latitude_new)
-                writeStore("LongEnter", longitude_new)
-                writeStoreLong("startTime", startTime)
+                userDataStore.writeStoreLatEnter(latitude_new)
+                userDataStore.writeStoreLongEnter(longitude_new)
+                userDataStore.writeStoreStartTime(startTime)
 
             }
-            println("$latitude, $longitude")
+            println("Start: $latitude, $longitude")
         }
 
         stopSelf()
@@ -186,8 +189,6 @@ class MyService: Service() {
                 longitudeExN = longitude + 2.3
             }
             scope.launch {
-                writeStore("LatExit", latitudeExN)
-                writeStore("LongExit", longitudeExN)
 
 //                readFullStore().catch{e -> e.printStackTrace()}.collect {up ->
 //                    println("STARTING")
@@ -202,9 +203,9 @@ class MyService: Service() {
 //                    println("Done 3")
 //                    this.cancel()
 //                }
-                startCoordinates.addAll(arrayOf(readStore("LatEnter"), readStore("LongEnter")))
-                endCoordinates.addAll(arrayOf(readStore("LatExit"), readStore("LongExit")))
-                val startTime = readStoreLong("startTime")
+                startCoordinates.addAll(arrayOf(userDataStore.readStoreLatEnter(), userDataStore.readStoreLongEnter()))
+                endCoordinates.addAll(arrayOf(latitudeExN, longitudeExN))
+                val startTime = userDataStore.readStoreStartTime()
                 println(startCoordinates)
                 println(endCoordinates)
                 println(startTime)
@@ -214,15 +215,22 @@ class MyService: Service() {
                 val endTime = System.currentTimeMillis()
 
                 val dbRawDrives = FirebaseDatabase.getInstance().getReference("RawDrives")
-                val drive = Drive("", startCoordinates, endCoordinates, startTime, endTime)
+                val drive = com.shreyd.co2tracker.Drive(
+                    "",
+                    startCoordinates,
+                    endCoordinates,
+                    startTime,
+                    endTime
+                )
                 drive.id = dbRawDrives.push().key
                 dbRawDrives.child(drive.id!!).setValue(drive)
+
 
                // TODO("Make API Call")
 
             }
+
             println("EXIT FUNCTION")
-            println("$latitude, $longitude")
         }
 
         stopSelf()
