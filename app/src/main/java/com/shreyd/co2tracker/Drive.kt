@@ -13,7 +13,9 @@ data class Drive(
     var endLoc: List<Double?>,
     var startTime: Long?,
     var endTime: Long?,
-    var waypoints: List<List<Double?>>? = null)
+    var waypoints: List<List<Double?>>? = null
+//    var emission: Double
+    )
 {
 
 }

@@ -16,12 +16,13 @@ import kotlinx.coroutines.launch
 /**
  * Created by Jyotish Biswas on 26,August,2023
  */
+
 private const val USER_DATA_STORE = "user-data-store"
 private const val PREF_KEY_USER_ID = "user-id-key"
 private const val PREF_KEY_AUTH_TOKEN = "auth-token-key"
 
-
 class UserDataStore private constructor(private val context: Context) {
+
 
     private val Context.datastore: DataStore<Preferences> by preferencesDataStore(name = USER_DATA_STORE)
 
@@ -93,7 +94,7 @@ class UserDataStore private constructor(private val context: Context) {
 
 
 
-    fun clearData() {
+    fun clearLocationData() {
         CoroutineScope(Dispatchers.Main).launch {
             context.datastore.edit {
                 it.remove(latEnterKey)

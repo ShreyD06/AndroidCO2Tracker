@@ -55,6 +55,7 @@ import java.io.IOException
 import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
+import com.shreyd.co2tracker.Drive
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -96,7 +97,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         navView.setupWithNavController(navController)
 
         //TODO("Clear dataStore here")
-        CoroutineScope(Dispatchers.Main).launch { userDataStore.clearData() }
+        CoroutineScope(Dispatchers.Main).launch { userDataStore.clearLocationData() }
 
 
         val rawDrives = mutableListOf<Drive>()
@@ -147,7 +148,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                 }
 
 
-                                val newDrive = com.shreyd.co2tracker.Drive(
+                                val newDrive = Drive(
                                     synthDrives[0].id,
                                     synthDrives[0].startLoc,
                                     rawDrives[i + 1].endLoc,
@@ -174,7 +175,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                             }
 
 
-                            val newDrive = com.shreyd.co2tracker.Drive(
+                            val newDrive = Drive(
                                 synthDrives[0].id,
                                 synthDrives[0].startLoc,
                                 rawDrives[i].endLoc,
@@ -231,11 +232,9 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             .replace("$", "").replace("[", "").replace("]", "")
         userEmail = id
 
-        dbUsers = FirebaseDatabase.getInstance().getReference("Users")
+        dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(userEmail)
         val userListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                for(ds in dataSnapshot.children) {
-                    if(ds.child("email").value.toString().lowercase(Locale.getDefault()) == email) {
+            override fun onDataChange(ds: DataSnapshot) {
                         val emailId = ds.child("email").value.toString()
                         if(ds.child("cartype").value.toString() == "Sedan") {
                             println("MAKING API CALL")
@@ -260,8 +259,6 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                             val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
                             carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), emailId)
                         }
-                    }
-                }
             }
 
             override fun onCancelled(error: DatabaseError) {
