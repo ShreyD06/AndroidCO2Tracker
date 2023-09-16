@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
+import java.util.*
 
 class Register : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
@@ -40,7 +41,7 @@ class Register : AppCompatActivity() {
             println("----------------$id-------------")
             val user = com.shreyd.co2tracker.User(
                 id = id,
-                email = email,
+                email = email.lowercase(Locale.ROOT),
                 name = findViewById<EditText>(R.id.nameEditText).text.toString(),
                 password = password,
                 cartype = carType

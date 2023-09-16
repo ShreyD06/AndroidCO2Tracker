@@ -37,6 +37,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.shreyd.co2tracker.databinding.ActivityTempMainBinding
 import com.shreyd.co2tracker.datastore.UserDataStore
@@ -56,6 +57,7 @@ import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 import com.shreyd.co2tracker.Drive
+import kotlin.properties.Delegates
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -66,7 +68,8 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
     lateinit var storage: SharedPreferences
     private lateinit var userEmail: String
     private lateinit var dbUsers: DatabaseReference
-
+    private var emissions by Delegates.notNull<Double>()
+    private var lenDrives by Delegates.notNull<Int>()
 
     private val userDataStore by lazy { UserDataStore.getInstance() }
 
@@ -99,11 +102,21 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         //TODO("Clear dataStore here")
         CoroutineScope(Dispatchers.Main).launch { userDataStore.clearLocationData() }
 
+        val authUser = Firebase.auth.currentUser
+        var email = ""
+        authUser?.let{
+            email = it.email!!
+        }
+        val id = email.replace(".", "").replace("#", "")
+            .replace("$", "").replace("[", "").replace("]", "")
+        userEmail = id
 
         val rawDrives = mutableListOf<Drive>()
         val dbRawDrives = FirebaseDatabase.getInstance().getReference("RawDrives")
         val synthDrives = mutableListOf<Drive>()
-        val dbDrives = FirebaseDatabase.getInstance().getReference("Drives")
+        dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(userEmail)
+        lenDrives = 0
+        emissions = 0.0
 
         val driveListener = object : ValueEventListener {
             var change = 0
@@ -115,7 +128,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                     for (ds in dataSnapshot.children) {
                         println(change)
                         change++
-                        val rdrive = com.shreyd.co2tracker.Drive(
+                        val rdrive = Drive(
                             ds.key,
                             listOf(
                                 ds.child("startLoc").child("0").value.toString().toDouble(),
@@ -157,7 +170,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                     waypoints
                                 )
 
-                                dbDrives.child(newDrive.id!!).setValue(newDrive)
+                                dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
                             }
                         }
                         else if(synthDrives.size > 0){
@@ -183,10 +196,11 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                 rawDrives[i].endTime,
                                 waypoints
                             )
-                            dbDrives.child(newDrive.id!!).setValue(newDrive)
+
+                            dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
 
                             if(i == rawDrives.size - 2) {
-                                dbDrives.child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+                                dbUsers.child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
                             }
 
 
@@ -194,7 +208,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                             synthDrives.clear()
                         }
                         else {
-                            val newDrive = com.shreyd.co2tracker.Drive(
+                            val newDrive = Drive(
                                 rawDrives[i].id,
                                 rawDrives[i].startLoc,
                                 rawDrives[i].endLoc,
@@ -202,10 +216,10 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                 rawDrives[i].endTime
                             )
 
-                            dbDrives.child(newDrive.id!!).setValue(newDrive)
+                            dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
 
                             if(i == rawDrives.size - 2) {
-                                dbDrives.child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+                                dbUsers.child("Drives").child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
                             }
                         }
                     }
@@ -223,42 +237,56 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
         //Google maps API call here
 
-        val authUser = Firebase.auth.currentUser
-        var email = ""
-        authUser?.let{
-            email = it.email!!
-        }
-        val id = email.replace(".", "").replace("#", "")
-            .replace("$", "").replace("[", "").replace("]", "")
-        userEmail = id
 
-        dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(userEmail)
+
+        var count = 0
         val userListener = object : ValueEventListener {
             override fun onDataChange(ds: DataSnapshot) {
-                        val emailId = ds.child("email").value.toString()
-                        if(ds.child("cartype").value.toString() == "Sedan") {
-                            println("MAKING API CALL")
-                            val activity_id = "passenger_vehicle-vehicle_type_car-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                            carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), emailId)
+                val emailId = ds.child("email").value.toString()
+                //ONLY LOAD IN DRIVES FROM HERE, MAKE API CALLS OUTSIDE onDataChange()
+                count++
+                if(count == 1) {
+                    try {
+                        for(drive in ds.child("Drives").children) {
+                            if(drive.child("emission").value.toString().toDouble() == 0.0) {
+                                lenDrives++
+                            }
                         }
+                        var count2 = 0
+                        for(drive in ds.child("Drives").children) {
+                            if(drive.child("emission").value.toString().toDouble() == 0.0) {
+                                count2++
+                                if(ds.child("cartype").value.toString() == "Sedan") {
+                                    println("MAKING API CALL")
+                                    val activity_id = "passenger_vehicle-vehicle_type_car-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                }
 
-                        else if(ds.child("cartype").value.toString() == "Motorcycle") {
-                            println("MAKING API CALL")
-                            val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                            carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), emailId)
-                        }
+                                else if(ds.child("cartype").value.toString() == "Motorcycle") {
+                                    println("MAKING API CALL")
+                                    val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                }
 
-                        else if(ds.child("cartype").value.toString() == "Pickup Truck/Minivan") {
-                            println("MAKING API CALL")
-                            val activity_id = "commercial_vehicle-vehicle_type_truck_light-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                            carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), emailId)
-                        }
+                                else if(ds.child("cartype").value.toString() == "Pickup Truck/Minivan") {
+                                    println("MAKING API CALL")
+                                    val activity_id = "commercial_vehicle-vehicle_type_truck_light-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                }
 
-                        else if(ds.child("cartype").value.toString() == "Truck") {
-                            println("MAKING API CALL")
-                            val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                            carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), emailId)
+                                else if(ds.child("cartype").value.toString() == "Truck") {
+                                    println("MAKING API CALL")
+                                    val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                }
+                            }
                         }
+                    }
+                    catch (err: Error) {
+                        println("Failed")
+                    }
+                }
+
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -364,33 +392,47 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         EventBus.getDefault().unregister(this)
     }
 
-    private fun carApiRequest(sUrl: String, activityId: String, currentEmissions: Double, emailId: String): String? {
+
+
+
+    private fun carApiRequest(sUrl: String, activityId: String, currentEmissions: Double, drive: String?, count: Int): String? {
         val distance = 50
         var okHttpClient: OkHttpClient = OkHttpClient()
         var result: String? = null
         val json = "{\"emission_factor\":{\"activity_id\":\"$activityId\", \"data_version\":\"4.4\", \"region\":\"US\"}, \"parameters\":{\"distance\":$distance, \"distance_unit\":\"mi\"}}"
         try {
-            val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
-
-            val url = URL(sUrl)
-
-            val request = Request.Builder().post(body).url(url).addHeader("Authorization", "Bearer: ${Constants.KEY}").build()
-
-            okHttpClient.newCall(request).enqueue(object: Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    result = response.body?.string()
-                    println(result)
-                    println(result?.subSequence(8, result!!.indexOf(",")))
-                    val em = result?.subSequence(8, result!!.indexOf(",")).toString().toDouble()
-                    val totalEm = currentEmissions + em
-                    dbUsers.child(emailId).child("Emissions").setValue(totalEm)
-                }
-
-                override fun onFailure(call: Call, e: IOException) {
-                    e.printStackTrace()
-                }
-
-            })
+//            val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
+//
+//            val url = URL(sUrl)
+//
+//            val request = Request.Builder().post(body).url(url).addHeader("Authorization", "Bearer: ${Constants.KEY}").build()
+//
+//            okHttpClient.newCall(request).enqueue(object: Callback {
+//                override fun onResponse(call: Call, response: Response) {
+//                    result = response.body?.string()
+//                    println(result)
+//                    println(result?.subSequence(8, result!!.indexOf(",")))
+//                    val em = result?.subSequence(8, result!!.indexOf(",")).toString().toDouble()
+//                    val totalEm = currentEmissions + em
+//                    println(drive)
+//                    dbUsers.child("Emissions").setValue(totalEm)
+//                    dbUsers.child("Drives").child(drive!!).child("emission").setValue(em)
+//                }
+//
+//                override fun onFailure(call: Call, e: IOException) {
+//                    e.printStackTrace()
+//                }
+//
+//            })
+            emissions += 16
+            println(drive)
+            dbUsers.child("Drives").child(drive!!).child("emission").setValue(16)
+            //Don't call actual API till RawDroves are empty, otherwise, the Drives node under the user will always have all drives "emission" be 0, since
+            // the drives are being created new every time
+            println("PSUEDO API CALL MADE")
+            if(count == lenDrives) {
+                dbUsers.child("Emissions").setValue(emissions)
+            }
             return result
         }
         catch(err:Error) {
@@ -398,6 +440,10 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         }
         return result
     }
+
+
+
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe
