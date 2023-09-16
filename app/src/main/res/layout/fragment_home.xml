@@ -11,19 +11,24 @@
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="\u2B24 Name:"
+        android:text="Welcome"
         android:textAlignment="center"
         android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/name"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
     <TextView
-        android:layout_marginStart="4dp"
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
         android:layout_marginTop="8dp"
         android:text="Jyotish Biswas"
         android:textAlignment="center"
@@ -33,11 +38,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:layout_marginTop="8dp"
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="\u2B24 Miles driven:"
         android:textAlignment="center"
         android:textSize="20sp"
@@ -57,11 +62,11 @@
         app:layout_constraintTop_toTopOf="@+id/textView2" />
 
     <TextView
-        android:layout_marginTop="8dp"
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="\u2B24 CO2 emits:"
         android:textAlignment="center"
         android:textSize="20sp"
@@ -94,7 +99,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <androidx.recyclerview.widget.RecyclerView
-        tools:listitem="@layout/list_item_recent_drives"
+        android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
@@ -102,5 +107,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4"
         app:spanCount="4"
-        tools:layout_editor_absoluteX="12dp" />
+        tools:layout_editor_absoluteX="12dp"
+        tools:listitem="@layout/list_item_recent_drives" />
 </androidx.constraintlayout.widget.ConstraintLayout>
