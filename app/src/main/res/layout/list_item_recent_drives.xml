@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:strokeWidth="1dp"
     app:strokeColor="@color/teal_700"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:id="@+id/MCView">
     <LinearLayout
         android:padding="8dp"
         android:orientation="vertical"

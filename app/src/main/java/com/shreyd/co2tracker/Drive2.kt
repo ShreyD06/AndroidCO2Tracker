@@ -2,6 +2,7 @@ package com.shreyd.co2tracker
 
 import com.google.firebase.database.Exclude
 
+
 class Drive2 {
 
     var id: String? = ""

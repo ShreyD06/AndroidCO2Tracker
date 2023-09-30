@@ -1,11 +1,14 @@
 package com.shreyd.co2tracker
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 
 
 class DriveAdapter(private val mList: List<Drive2>) : RecyclerView.Adapter<DriveAdapter.ViewHolder>() {
@@ -31,6 +34,13 @@ class DriveAdapter(private val mList: List<Drive2>) : RecyclerView.Adapter<Drive
 // sets the text to the textview from our itemHolder class
         holder.distance.text = "${itemsViewModel.distance} mi"
 
+
+        holder.mcView.setOnClickListener {
+            val ddIntent = Intent(holder.itemView.context, DriveDetails::class.java)
+            ddIntent.putExtra("driveId", itemsViewModel.id)
+            holder.itemView.context.startActivity(ddIntent)
+        }
+
     }
 
     // return the number of the items in the list
@@ -42,5 +52,6 @@ class DriveAdapter(private val mList: List<Drive2>) : RecyclerView.Adapter<Drive
     class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView) {
         val emit: TextView = itemView.findViewById(R.id.emit)
         val distance: TextView = itemView.findViewById(R.id.distance)
+        val mcView: MaterialCardView = itemView.findViewById(R.id.MCView)
     }
 }

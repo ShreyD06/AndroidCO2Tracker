@@ -226,8 +226,6 @@ class MyService: Service() {
                 dbRawDrives.child(drive.id!!).setValue(drive)
 
 
-               // TODO("Make API Call")
-
             }
 
             println("EXIT FUNCTION")
@@ -258,7 +256,7 @@ class MyService: Service() {
     @Suppress("SameParameterValue")
     private fun createNotificationChannel(channelId: String, channelName: String): String {
         val chan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_NONE)
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
             val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             service.createNotificationChannel(channel)
             channel
