@@ -6,16 +6,17 @@ import com.google.firebase.database.Exclude
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-data class Drive(
+class Drive(
     @get:Exclude
     var id: String?,
-    var startLoc: List<Double?>,
-    var endLoc: List<Double?>,
-    var startTime: Long?,
-    var endTime: Long?,
+    var startLoc: List<Double?> = listOf(0.0, 0.0),
+    var endLoc: List<Double?> = listOf(0.0, 0.0),
+    var startTime: Long? = 0,
+    var endTime: Long? = 0,
     var waypoints: List<List<Double?>>? = null,
-    var emission: Double = 0.0
+    var emission: Double = 0.0,
+    var distance: Double = 0.0
     )
 {
-
 }
+

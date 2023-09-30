@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.icu.text.SimpleDateFormat
+import android.location.Location.distanceBetween
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
@@ -57,7 +59,9 @@ import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 import com.shreyd.co2tracker.Drive
+import java.lang.Long
 import kotlin.properties.Delegates
+import kotlin.math.*
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -70,6 +74,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
     private lateinit var dbUsers: DatabaseReference
     private var emissions by Delegates.notNull<Double>()
     private var lenDrives by Delegates.notNull<Int>()
+    private lateinit var newDrives: MutableList<Drive>
 
     private val userDataStore by lazy { UserDataStore.getInstance() }
 
@@ -117,37 +122,68 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(userEmail)
         lenDrives = 0
         emissions = 0.0
+        newDrives = mutableListOf()
 
-        val driveListener = object : ValueEventListener {
-            var change = 0
-            var times = 0
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                times++
-                if(times <= 1) {
-                    println("NEW LOAD")
-                    for (ds in dataSnapshot.children) {
-                        println(change)
-                        change++
-                        val rdrive = Drive(
-                            ds.key,
-                            listOf(
-                                ds.child("startLoc").child("0").value.toString().toDouble(),
-                                ds.child("startLoc").child("1").value.toString().toDouble()
-                            ),
-                            listOf(
-                                ds.child("endLoc").child("0").value.toString().toDouble(),
-                                ds.child("endLoc").child("1").value.toString().toDouble()
-                            ),
-                            ds.child("startTime").value.toString().toLong(),
-                            ds.child("endTime").value.toString().toLong()
-                        )
-                        rawDrives.add(rdrive)
-                    }
-                    for(i in 0..rawDrives.size - 2) {
-                        if(rawDrives[i+1].startTime!! - rawDrives[i].endTime!! < 300000) {
-                            //Synthesize drives
-                            synthDrives.add(rawDrives[i])
-                            if(i == rawDrives.size - 2) {
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val driveListener = object : ValueEventListener {
+                var change = 0
+                var times = 0
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    times++
+                    if(times <= 1) {
+                        println("NEW LOAD")
+                        for (ds in dataSnapshot.children) {
+                            println(change)
+                            change++
+                            val rdrive = Drive(
+                                ds.key,
+                                listOf(
+                                    ds.child("startLoc").child("0").value.toString().toDouble(),
+                                    ds.child("startLoc").child("1").value.toString().toDouble()
+                                ),
+                                listOf(
+                                    ds.child("endLoc").child("0").value.toString().toDouble(),
+                                    ds.child("endLoc").child("1").value.toString().toDouble()
+                                ),
+                                ds.child("startTime").value.toString().toLong(),
+                                ds.child("endTime").value.toString().toLong()
+                            )
+                            rawDrives.add(rdrive)
+                        }
+                        for(i in 0..rawDrives.size - 2) {
+                            if(rawDrives[i+1].startTime!! - rawDrives[i].endTime!! < 300000) {
+                                //Synthesize drives
+                                synthDrives.add(rawDrives[i])
+                                if(i == rawDrives.size - 2) {
+                                    val waypoints = mutableListOf<List<Double?>>()
+
+                                    if(synthDrives.size == 1) {
+                                        waypoints.add(synthDrives[0].endLoc)
+                                    }
+                                    else {
+                                        for(k in 1..synthDrives.size - 1) {
+                                            waypoints.add(synthDrives[k].startLoc)
+                                        }
+                                        waypoints.add(rawDrives[i].startLoc)
+                                    }
+
+
+                                    val newDrive = Drive(
+                                        synthDrives[0].id,
+                                        synthDrives[0].startLoc,
+                                        rawDrives[i + 1].endLoc,
+                                        synthDrives[0].startTime,
+                                        rawDrives[i + 1].endTime,
+                                        waypoints
+                                    )
+
+                                    dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
+                                    newDrives.add(newDrive)
+                                }
+                            }
+                            else if(synthDrives.size > 0){
+
                                 val waypoints = mutableListOf<List<Double?>>()
 
                                 if(synthDrives.size == 1) {
@@ -164,139 +200,223 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                 val newDrive = Drive(
                                     synthDrives[0].id,
                                     synthDrives[0].startLoc,
-                                    rawDrives[i + 1].endLoc,
+                                    rawDrives[i].endLoc,
                                     synthDrives[0].startTime,
-                                    rawDrives[i + 1].endTime,
+                                    rawDrives[i].endTime,
                                     waypoints
                                 )
 
                                 dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
-                            }
-                        }
-                        else if(synthDrives.size > 0){
+                                newDrives.add(newDrive)
 
-                            val waypoints = mutableListOf<List<Double?>>()
+                                if(i == rawDrives.size - 2) {
+                                    dbUsers.child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+                                    newDrives.add(rawDrives[i+1])
+                                }
 
-                            if(synthDrives.size == 1) {
-                                waypoints.add(synthDrives[0].endLoc)
+
+                                waypoints.clear()
+                                synthDrives.clear()
                             }
                             else {
-                                for(k in 1..synthDrives.size - 1) {
-                                    waypoints.add(synthDrives[k].startLoc)
+                                val newDrive = Drive(
+                                    rawDrives[i].id,
+                                    rawDrives[i].startLoc,
+                                    rawDrives[i].endLoc,
+                                    rawDrives[i].startTime,
+                                    rawDrives[i].endTime
+                                )
+
+                                dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
+                                newDrives.add(newDrive)
+
+                                if(i == rawDrives.size - 2) {
+                                    dbUsers.child("Drives").child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+                                    newDrives.add(rawDrives[i+1])
                                 }
-                                waypoints.add(rawDrives[i].startLoc)
                             }
+                        }
+                    }
+
+                }
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    println("Cancelled")
+                }
+            }
+
+            dbRawDrives.addListenerForSingleValueEvent(driveListener)
 
 
-                            val newDrive = Drive(
-                                synthDrives[0].id,
-                                synthDrives[0].startLoc,
-                                rawDrives[i].endLoc,
-                                synthDrives[0].startTime,
-                                rawDrives[i].endTime,
-                                waypoints
-                            )
+            //Clear dbRawDrives here
 
-                            dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
+            //Google maps API call here
+            delay(5000)
 
-                            if(i == rawDrives.size - 2) {
-                                dbUsers.child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+            var count = 0
+            val userListener = object : ValueEventListener {
+                override fun onDataChange(ds: DataSnapshot) {
+                    val emailId = ds.child("email").value.toString()
+                    //ONLY LOAD IN DRIVES FROM HERE, MAKE API CALLS OUTSIDE onDataChange()
+                    count++
+                    if(count == 1) {
+                        try {
+                            for(drive in ds.child("Drives").children) {
+                                if(drive.child("emission").value.toString().toDouble() == 0.0) {
+                                    lenDrives++
+                                }
                             }
+                            var count2 = 0
 
+                            for(drive in ds.child("Drives").children) {
+                                var tDrive = drive.getValue(Drive2::class.java)
 
-                            waypoints.clear()
-                            synthDrives.clear()
+                                if(drive.child("emission").value.toString().toDouble() == 0.0) {
+                                    count2++
+
+                                    if(ds.child("cartype").value.toString() == "Sedan") {
+                                        println("MAKING API CALL")
+                                        val activity_id = "passenger_vehicle-vehicle_type_car-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                    }
+
+                                    else if(ds.child("cartype").value.toString() == "Motorcycle") {
+                                        println("MAKING API CALL")
+                                        val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                    }
+
+                                    else if(ds.child("cartype").value.toString() == "Pickup Truck/Minivan") {
+                                        println("MAKING API CALL")
+                                        val activity_id = "commercial_vehicle-vehicle_type_truck_light-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                    }
+
+                                    else if(ds.child("cartype").value.toString() == "Truck") {
+                                        println("MAKING API CALL")
+                                        val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                    }
+                                }
+                            }
+                        }
+                        catch (err: Error) {
+                            println("Failed")
+                        }
+                    }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    println("Cancelled")
+                }
+
+            }
+
+            dbUsers.addListenerForSingleValueEvent(userListener)
+            println(newDrives)
+
+            var iter = 0
+            val renewed = mutableListOf<Drive>()
+            val freqDrives = mutableMapOf<String, Int>()
+            val sTimes = mutableMapOf<String, MutableList<kotlin.Long?>>()
+
+            val fDrivesListener = object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    println("READING")
+                    iter++
+                    if(iter < 2 || newDrives.size != renewed.size) {
+                        if (dataSnapshot.childrenCount == 0L) {
+                            println("Does not exist")
+                            val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, newDrives[0].startLoc, newDrives[0].endLoc, mutableListOf(newDrives[0].startTime), newDrives[0].endTime, newDrives[0].waypoints, newDrives[0].emission, newDrives[0].distance)
+                            renewed.addAll(newDrives.subList(1, newDrives.size))
+                            dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
                         }
                         else {
-                            val newDrive = Drive(
-                                rawDrives[i].id,
-                                rawDrives[i].startLoc,
-                                rawDrives[i].endLoc,
-                                rawDrives[i].startTime,
-                                rawDrives[i].endTime
-                            )
+                            if (renewed.size == 0) {
+                                renewed.addAll(newDrives)
+                            }
+                            for (ds in dataSnapshot.children) {
+                                freqDrives.put(ds.key!!, ds.child("times").value.toString().toInt())
+                                sTimes.put(ds.key!!, ds.getValue(FreqDrive::class.java)!!.startTimes)
+                            }
+                            for (ds in dataSnapshot.children) {
+                                println("Setting")
+                                for (drive in renewed) {
+                                    if (calcDistance(drive.startLoc, ds.getValue(FreqDrive::class.java)?.startLoc!!) <= 100.0 &&
+                                        calcDistance(drive.endLoc, ds.getValue(FreqDrive::class.java)?.endLoc!!) <= 100.0)
+                                    {
+                                        freqDrives[ds.key!!] = freqDrives[ds.key!!]!! + 1
+                                        sTimes[ds.key!!]!!.add(drive.startTime)
 
-                            dbUsers.child("Drives").child(newDrive.id!!).setValue(newDrive)
+                                    }
 
-                            if(i == rawDrives.size - 2) {
-                                dbUsers.child("Drives").child(rawDrives[i+1].id!!).setValue(rawDrives[i+1])
+                                    else {
+                                        //add into Frequent Drives (with a new model class with just the locations and a time parameter)
+                                        val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, drive.startLoc, drive.endLoc, mutableListOf(drive.startTime), drive.endTime, drive.waypoints, drive.emission, drive.distance)
+                                        dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    println(databaseError)
+                }
             }
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                println("Cancelled")
+            dbUsers.child("Frequent Drives").addValueEventListener(fDrivesListener)
+
+            delay(3000)
+
+            println("Read Map")
+            freqDrives.forEach {
+                println("${it.key}, ${it.value}")
+                dbUsers.child("Frequent Drives").child(it.key).child("times").setValue(it.value)
+            }
+            sTimes.forEach {
+                println("${it.key}, ${it.value}")
+                dbUsers.child("Frequent Drives").child(it.key).child("startTimes").setValue(it.value)
             }
         }
 
-        dbRawDrives.addValueEventListener(driveListener)
-        //Clear dbRawDrives here
-
-        //Google maps API call here
-
-
-
-        var count = 0
-        val userListener = object : ValueEventListener {
-            override fun onDataChange(ds: DataSnapshot) {
-                val emailId = ds.child("email").value.toString()
-                //ONLY LOAD IN DRIVES FROM HERE, MAKE API CALLS OUTSIDE onDataChange()
-                count++
-                if(count == 1) {
-                    try {
-                        for(drive in ds.child("Drives").children) {
-                            if(drive.child("emission").value.toString().toDouble() == 0.0) {
-                                lenDrives++
-                            }
-                        }
-                        var count2 = 0
-                        for(drive in ds.child("Drives").children) {
-                            if(drive.child("emission").value.toString().toDouble() == 0.0) {
-                                count2++
-                                if(ds.child("cartype").value.toString() == "Sedan") {
-                                    println("MAKING API CALL")
-                                    val activity_id = "passenger_vehicle-vehicle_type_car-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+        CoroutineScope(Dispatchers.IO).launch {
+            val timeListener = object: ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.childrenCount > 0L) {
+                        for (ds in snapshot.children) {
+                            val convTimes = mutableListOf<String>()
+                            val drive = ds.getValue(FreqDrive::class.java)
+                            if(drive!!.times >= 5) {
+                                //Find minimum time by converting times to date using SimpleDateFormat
+                                val formatter = SimpleDateFormat("hh:mm:ss.SSS", Locale.US)
+                                for (t in drive.startTimes) {
+                                    convTimes.add(formatter.format(t))
+                                    println(formatter.format(t))
                                 }
-
-                                else if(ds.child("cartype").value.toString() == "Motorcycle") {
-                                    println("MAKING API CALL")
-                                    val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                val milliTimes = convTimes.map {
+                                    formatter.parse(it).time
                                 }
+                                //Find out "compactness" of times data: Find how large the standard deviation is?
 
-                                else if(ds.child("cartype").value.toString() == "Pickup Truck/Minivan") {
-                                    println("MAKING API CALL")
-                                    val activity_id = "commercial_vehicle-vehicle_type_truck_light-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
-                                }
+                                println("MIN: ${milliTimes.min()}, ${formatter.format(milliTimes.min())}")
+                                dbUsers.child(ds.key!!).child("finTime").setValue(milliTimes.min())
 
-                                else if(ds.child("cartype").value.toString() == "Truck") {
-                                    println("MAKING API CALL")
-                                    val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                    carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
-                                }
                             }
                         }
                     }
-                    catch (err: Error) {
-                        println("Failed")
-                    }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
                 }
 
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                println("Cancelled")
-            }
-
+            dbUsers.child("Frequent Drives").addListenerForSingleValueEvent(timeListener)
         }
-
-        dbUsers.addValueEventListener(userListener)
-
 
         val intent = Intent(this, ActivityTransitionReceiver::class.java)
         val intent2 = Intent(this, ActivityTransitionReceiver::class.java)
@@ -425,9 +545,10 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 //
 //            })
             emissions += 16
-            println(drive)
+            println(count)
             dbUsers.child("Drives").child(drive!!).child("emission").setValue(16)
-            //Don't call actual API till RawDroves are empty, otherwise, the Drives node under the user will always have all drives "emission" be 0, since
+            newDrives[count-1].emission = 16.0
+            //Don't call actual API till RawDrives are empty, otherwise, the Drives node under the user will always have all drives "emission" be 0, since
             // the drives are being created new every time
             println("PSUEDO API CALL MADE")
             if(count == lenDrives) {
@@ -441,6 +562,28 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         return result
     }
 
+
+    private fun calcDistance(startLoc: List<Double?>, endLoc: List<Double?>): Double {
+        val radPerDeg = PI/180
+        val rkm = 6371
+        val rm = rkm * 100
+
+        val dLatRad = (endLoc[0]!! - startLoc[0]!!) * radPerDeg
+        val dLonRad = (endLoc[1]!! - startLoc[1]!!) * radPerDeg
+
+        val startLatRad = startLoc[0]!! * radPerDeg
+        val startLonRad = startLoc[1]!! * radPerDeg
+
+        val endLatRad = endLoc[0]!! * radPerDeg
+        val endLonRad = endLoc[1]!! * radPerDeg
+
+        val a = sin(dLatRad/2).pow(2) + cos(startLatRad) * cos(endLatRad) * sin(dLonRad/2).pow(2)
+        val c = 2 * atan2(sqrt(a), sqrt(1-a))
+
+        println(rm * c)
+
+        return rm * c
+    }
 
 
 

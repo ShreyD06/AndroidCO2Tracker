@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 
-class DriveAdapter(private val mList: List<Drive>) : RecyclerView.Adapter<DriveAdapter.ViewHolder>() {
+class DriveAdapter(private val mList: List<Drive2>) : RecyclerView.Adapter<DriveAdapter.ViewHolder>() {
 
     // create new views
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -29,7 +29,7 @@ class DriveAdapter(private val mList: List<Drive>) : RecyclerView.Adapter<DriveA
         holder.emit.text = "${itemsViewModel.emission} kg"
 
 // sets the text to the textview from our itemHolder class
-        holder.distance.text = "${itemsViewModel.startLoc} mi"
+        holder.distance.text = "${itemsViewModel.distance} mi"
 
     }
 
