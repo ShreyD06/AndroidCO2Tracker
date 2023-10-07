@@ -13,6 +13,8 @@ class FreqDrive {
     var distance: Double = 0.0
     var times: Int = 0
     var finTime: Long? = 0
+    var startLocS: String = "1944 Horse Shoe Dr"
+    var endLocS: String = "7731 Leesburg Pike"
 
     private constructor() {}
     constructor(id: String?,

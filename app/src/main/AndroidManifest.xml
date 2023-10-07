@@ -20,16 +20,23 @@
         android:theme="@style/Theme.CO2Tracker"
         tools:targetApi="31">
         <activity
+            android:name=".PublicTransport"
+            android:exported="true">
+
+        </activity>
+        <activity
             android:name=".DriveDetails"
             android:exported="false" />
         <activity
             android:name=".TempMain"
             android:exported="true"
             android:label="@string/title_activity_temp_main"
-            android:theme="@style/Theme.CO2Tracker.NoActionBar"></activity>
+            android:theme="@style/Theme.CO2Tracker.NoActionBar" />
+
+
         <activity
             android:name=".Register"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".Login"
             android:exported="true">
@@ -41,7 +48,7 @@
         </activity>
         <activity
             android:name=".Welcome"
-            android:exported="true"></activity>
+            android:exported="true" />
         <activity
             android:name=".Activity2"
             android:exported="false" />
@@ -50,7 +57,7 @@
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
 
         <receiver
             android:name=".ActivityTransitionReceiver"
