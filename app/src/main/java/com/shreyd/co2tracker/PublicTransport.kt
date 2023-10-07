@@ -2,6 +2,7 @@ package com.shreyd.co2tracker
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.google.gson.Gson
 import com.shreyd.co2tracker.model.GeocoderResponse
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,25 +28,27 @@ class PublicTransport : AppCompatActivity() {
 
         val url = URL(sUrl)
 
-//        val request = Request.Builder().url(url).build()
-//
-//        println(request.toString())
+        val request = Request.Builder().url(url).build()
+
+        println(request.toString())
 //
         var result: String? = null
 //
-//        okHttpClient.newCall(request).enqueue(object: Callback {
-//            override fun onResponse(call: Call, response: Response) {
-//                result = response.body?.string()
-//                println(result)
-////                val data = Json.decodeFromString<GeocoderResponse>(result!!)
-//
-//            }
-//
-//            override fun onFailure(call: Call, e: IOException) {
-//                e.printStackTrace()
-//            }
-//
-//        })
+        val gson = Gson()
+        okHttpClient.newCall(request).enqueue(object: Callback {
+            override fun onResponse(call: Call, response: Response) {
+
+                result = response.body?.string()
+                println(result)
+                val geocoderResp = gson.fromJson(result, GeocoderResponse::class.java)
+
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+        })
 
 
 
