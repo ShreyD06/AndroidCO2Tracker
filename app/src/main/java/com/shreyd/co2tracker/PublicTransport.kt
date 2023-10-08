@@ -26,29 +26,29 @@ class PublicTransport : AppCompatActivity() {
 
 
 
-        val url = URL(sUrl)
-
-        val request = Request.Builder().url(url).build()
-
-        println(request.toString())
+//        val url = URL(sUrl)
 //
+//        val request = Request.Builder().url(url).build()
+//
+//        println(request.toString())
+////
         var result: String? = null
+////
+//        val gson = Gson()
+//        okHttpClient.newCall(request).enqueue(object: Callback {
+//            override fun onResponse(call: Call, response: Response) {
 //
-        val gson = Gson()
-        okHttpClient.newCall(request).enqueue(object: Callback {
-            override fun onResponse(call: Call, response: Response) {
-
-                result = response.body?.string()
-                println(result)
-                val geocoderResp = gson.fromJson(result, GeocoderResponse::class.java)
-
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-        })
+//                result = response.body?.string()
+//                println(result)
+//                val geocoderResp = gson.fromJson(result, GeocoderResponse::class.java)
+//
+//            }
+//
+//            override fun onFailure(call: Call, e: IOException) {
+//                e.printStackTrace()
+//            }
+//
+//        })
 
 
 
@@ -59,7 +59,7 @@ class PublicTransport : AppCompatActivity() {
         val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
         val url2 = URL(sUrl2)
 
-        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.legs.steps.transitDetails").build()
+        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.legs.polyline,routes.legs.steps.navigationInstruction,routes.legs.steps.transitDetails").build()
 
         okHttpClient.newCall(request2).enqueue(object: Callback {
             override fun onResponse(call: Call, response: Response) {
@@ -74,4 +74,6 @@ class PublicTransport : AppCompatActivity() {
         })
 
     }
+    //routes.legs.steps.transitDetails
+    //routes.legs.steps.polyline,routes.legs.steps.navigationInstruction,routes.legs.steps.transitDetails
 }
