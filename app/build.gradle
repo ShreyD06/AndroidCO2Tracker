@@ -67,6 +67,7 @@ dependencies {
     implementation "androidx.datastore:datastore-preferences:1.0.0"
     implementation "com.squareup.okhttp3:okhttp:4.9.0"
 
+
     // optional - RxJava2 support
     implementation "androidx.datastore:datastore-preferences-rxjava2:1.0.0"
 
