@@ -1,6 +1,7 @@
 package com.shreyd.co2tracker.ui.home
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,7 +29,7 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     val drives = mutableListOf<Drive2>()
-
+    lateinit var adapter: DriveAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,6 +46,8 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //Get Data From Firebase
+        adapter = DriveAdapter(drives)
+        binding.recycler.adapter = adapter
         val authUser = Firebase.auth.currentUser
         var email = ""
         authUser?.let{
@@ -57,6 +60,7 @@ class HomeFragment : Fragment() {
         var change = 0
         val driveListener = object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                Log.e("error", "Success")
                 change ++
                 if(change == 1) {
                     for(ds in snapshot.children) {
@@ -64,12 +68,15 @@ class HomeFragment : Fragment() {
                         drives.add(drive!!)
                         println(drive.startTime)
                         println("-----------SIZE ${drives.size}--------------")
+
+                        adapter.notifyDataSetChanged()
                     }
-                }
+               }
 
             }
 
             override fun onCancelled(error: DatabaseError) {
+                Log.e("error", error.details)
                 println(error)
             }
 
@@ -77,8 +84,8 @@ class HomeFragment : Fragment() {
 
         dbUserDrives.addValueEventListener(driveListener)
 
-        val adapter = DriveAdapter(drives)
-        binding.recycler.adapter = adapter
+
+
     }
     override fun onDestroyView() {
         super.onDestroyView()
