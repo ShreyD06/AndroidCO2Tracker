@@ -321,66 +321,66 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             val renewed = mutableListOf<Drive>()
             val freqDrives = mutableMapOf<String, Int>()
             val sTimes = mutableMapOf<String, MutableList<kotlin.Long?>>()
-
-            val fDrivesListener = object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    println("READING")
-                    iter++
-                    if(iter < 2 || newDrives.size != renewed.size) {
-                        if (dataSnapshot.childrenCount == 0L) {
-                            println("Does not exist")
-                            val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, newDrives[0].startLoc, newDrives[0].endLoc, mutableListOf(newDrives[0].startTime), newDrives[0].endTime, newDrives[0].waypoints, newDrives[0].emission, newDrives[0].distance)
-                            renewed.addAll(newDrives.subList(1, newDrives.size))
-                            dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
-                        }
-                        else {
-                            if (renewed.size == 0) {
-                                renewed.addAll(newDrives)
-                            }
-                            for (ds in dataSnapshot.children) {
-                                freqDrives.put(ds.key!!, ds.child("times").value.toString().toInt())
-                                sTimes.put(ds.key!!, ds.getValue(FreqDrive::class.java)!!.startTimes)
-                            }
-                            for (ds in dataSnapshot.children) {
-                                println("Setting")
-                                for (drive in renewed) {
-                                    if (calcDistance(drive.startLoc, ds.getValue(FreqDrive::class.java)?.startLoc!!) <= 100.0 &&
-                                        calcDistance(drive.endLoc, ds.getValue(FreqDrive::class.java)?.endLoc!!) <= 100.0)
-                                    {
-                                        freqDrives[ds.key!!] = freqDrives[ds.key!!]!! + 1
-                                        sTimes[ds.key!!]!!.add(drive.startTime)
-
-                                    }
-
-                                    else {
-                                        //add into Frequent Drives (with a new model class with just the locations and a time parameter)
-                                        val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, drive.startLoc, drive.endLoc, mutableListOf(drive.startTime), drive.endTime, drive.waypoints, drive.emission, drive.distance)
-                                        dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Getting Post failed, log a message
-                    println(databaseError)
-                }
-            }
-            dbUsers.child("Frequent Drives").addValueEventListener(fDrivesListener)
-
-            delay(3000)
-
-            println("Read Map")
-            freqDrives.forEach {
-//                println("${it.key}, ${it.value}")
-                dbUsers.child("Frequent Drives").child(it.key).child("times").setValue(it.value)
-            }
-            sTimes.forEach {
-//                println("${it.key}, ${it.value}")
-                dbUsers.child("Frequent Drives").child(it.key).child("startTimes").setValue(it.value)
-            }
+//
+//            val fDrivesListener = object : ValueEventListener {
+//                override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                    println("READING")
+//                    iter++
+//                    if(iter < 2 || newDrives.size != renewed.size) {
+//                        if (dataSnapshot.childrenCount == 0L) {
+//                            println("Does not exist")
+//                            val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, newDrives[0].startLoc, newDrives[0].endLoc, mutableListOf(newDrives[0].startTime), newDrives[0].endTime, newDrives[0].waypoints, newDrives[0].emission, newDrives[0].distance)
+//                            renewed.addAll(newDrives.subList(1, newDrives.size))
+//                            dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
+//                        }
+//                        else {
+//                            if (renewed.size == 0) {
+//                                renewed.addAll(newDrives)
+//                            }
+//                            for (ds in dataSnapshot.children) {
+//                                freqDrives.put(ds.key!!, ds.child("times").value.toString().toInt())
+//                                sTimes.put(ds.key!!, ds.getValue(FreqDrive::class.java)!!.startTimes)
+//                            }
+//                            for (ds in dataSnapshot.children) {
+//                                println("Setting")
+//                                for (drive in renewed) {
+//                                    if (calcDistance(drive.startLoc, ds.getValue(FreqDrive::class.java)?.startLoc!!) <= 100.0 &&
+//                                        calcDistance(drive.endLoc, ds.getValue(FreqDrive::class.java)?.endLoc!!) <= 100.0)
+//                                    {
+//                                        freqDrives[ds.key!!] = freqDrives[ds.key!!]!! + 1
+//                                        sTimes[ds.key!!]!!.add(drive.startTime)
+//
+//                                    }
+//
+//                                    else {
+//                                        //add into Frequent Drives (with a new model class with just the locations and a time parameter)
+//                                        val newFDrive = FreqDrive(dbUsers.child("Frequent Drives").push().key, drive.startLoc, drive.endLoc, mutableListOf(drive.startTime), drive.endTime, drive.waypoints, drive.emission, drive.distance)
+//                                        dbUsers.child("Frequent Drives").child(newFDrive.id!!).setValue(newFDrive)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                override fun onCancelled(databaseError: DatabaseError) {
+//                    // Getting Post failed, log a message
+//                    println(databaseError)
+//                }
+//            }
+//            dbUsers.child("Frequent Drives").addValueEventListener(fDrivesListener)
+//
+//            delay(3000)
+//
+//            println("Read Map")
+//            freqDrives.forEach {
+////                println("${it.key}, ${it.value}")
+//                dbUsers.child("Frequent Drives").child(it.key).child("times").setValue(it.value)
+//            }
+//            sTimes.forEach {
+////                println("${it.key}, ${it.value}")
+//                dbUsers.child("Frequent Drives").child(it.key).child("startTimes").setValue(it.value)
+//            }
         }
 
 //        CoroutineScope(Dispatchers.IO).launch {
