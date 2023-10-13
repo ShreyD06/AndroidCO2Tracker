@@ -62,6 +62,7 @@ import com.shreyd.co2tracker.Drive
 import java.lang.Long
 import kotlin.properties.Delegates
 import kotlin.math.*
+import com.shreyd.co2tracker.FreqDrive
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -373,50 +374,50 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
             println("Read Map")
             freqDrives.forEach {
-                println("${it.key}, ${it.value}")
+//                println("${it.key}, ${it.value}")
                 dbUsers.child("Frequent Drives").child(it.key).child("times").setValue(it.value)
             }
             sTimes.forEach {
-                println("${it.key}, ${it.value}")
+//                println("${it.key}, ${it.value}")
                 dbUsers.child("Frequent Drives").child(it.key).child("startTimes").setValue(it.value)
             }
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val timeListener = object: ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    if (snapshot.childrenCount > 0L) {
-                        for (ds in snapshot.children) {
-                            val convTimes = mutableListOf<String>()
-                            val drive = ds.getValue(FreqDrive::class.java)
-                            if(drive!!.times >= 5) {
-                                //Find minimum time by converting times to date using SimpleDateFormat
-                                val formatter = SimpleDateFormat("hh:mm:ss.SSS", Locale.US)
-                                for (t in drive.startTimes) {
-                                    convTimes.add(formatter.format(t))
-                                    println(formatter.format(t))
-                                }
-                                val milliTimes = convTimes.map {
-                                    formatter.parse(it).time
-                                }
-                                //Find out "compactness" of times data: Find how large the standard deviation is?
-
-                                println("MIN: ${milliTimes.min()}, ${formatter.format(milliTimes.min())}")
-                                dbUsers.child(ds.key!!).child("finTime").setValue(milliTimes.min())
-
-                            }
-                        }
-                    }
-
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
-                }
-
-            }
-            dbUsers.child("Frequent Drives").addListenerForSingleValueEvent(timeListener)
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val timeListener = object: ValueEventListener {
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    if (snapshot.childrenCount > 0L) {
+//                        for (ds in snapshot.children) {
+//                            val convTimes = mutableListOf<String>()
+//                            val drive = ds.getValue(FreqDrive::class.java)
+//                            if(drive!!.times >= 5) {
+//                                //Find minimum time by converting times to date using SimpleDateFormat
+//                                val formatter = SimpleDateFormat("hh:mm:ss.SSS", Locale.US)
+//                                for (t in drive.startTimes) {
+//                                    convTimes.add(formatter.format(t))
+//                                    println(formatter.format(t))
+//                                }
+//                                val milliTimes = convTimes.map {
+//                                    formatter.parse(it).time
+//                                }
+//                                //Find out "compactness" of times data: Find how large the standard deviation is?
+//
+//                                println("MIN: ${milliTimes.min()}, ${formatter.format(milliTimes.min())}")
+//                                dbUsers.child("Frequent Drives").child(ds.key!!).child("finTime").setValue(milliTimes.min())
+//
+//                            }
+//                        }
+//                    }
+//
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    TODO("Not yet implemented")
+//                }
+//
+//            }
+//            dbUsers.child("Frequent Drives").addListenerForSingleValueEvent(timeListener)
+//        }
 
         val intent = Intent(this, ActivityTransitionReceiver::class.java)
         val intent2 = Intent(this, ActivityTransitionReceiver::class.java)

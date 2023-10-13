@@ -31,36 +31,36 @@ class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
         val driveId = intent.getStringExtra("driveId")
 
-        val authUser = Firebase.auth.currentUser
-        var email = ""
-        authUser?.let{
-            email = it.email!!
-        }
-        val id = email.replace(".", "").replace("#", "")
-            .replace("$", "").replace("[", "").replace("]", "")
-
-        val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives").child("DUMMY")
-
-        val singleDriveListener = object: ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                driveInfo = snapshot.getValue(DriveInfo::class.java)!!
-                Log.e("lol", Gson().toJson(driveInfo))
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("lol", error.details)
-            }
-
-        }
-
-        dbUserDrives.addListenerForSingleValueEvent(singleDriveListener)
+//        val authUser = Firebase.auth.currentUser
+//        var email = ""
+//        authUser?.let{
+//            email = it.email!!
+//        }
+//        val id = email.replace(".", "").replace("#", "")
+//            .replace("$", "").replace("[", "").replace("]", "")
+//
+//        val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives").child("DUMMY")
+//
+//        val singleDriveListener = object: ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                driveInfo = snapshot.getValue(DriveInfo::class.java)!!
+//                Log.e("lol", Gson().toJson(driveInfo))
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                Log.e("lol", error.details)
+//            }
+//
+//        }
+//
+//        dbUserDrives.addListenerForSingleValueEvent(singleDriveListener)
     }
 
     override fun onMapReady(map: GoogleMap) {
-        createPoliLine(map)
+        createPolyLine(map)
     }
 
-    private fun createPoliLine(map: GoogleMap) {
+    private fun createPolyLine(map: GoogleMap) {
         val rectOptions = PolylineOptions()
         //this is the color of route
         //this is the color of route
@@ -69,10 +69,10 @@ class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
         var startLatLng: LatLng? = null
         var endLatLng: LatLng? = null
 
-            rectOptions.add(LatLng(38.9124267,-77.239105))
-            rectOptions.add(LatLng(38.917988,-77.230499))
-            rectOptions.add(LatLng(38.908458,-77.214317))
-            rectOptions.add(LatLng(38.9057249,-77.2122041))
+        rectOptions.add(LatLng(38.9124267,-77.239105))
+        rectOptions.add(LatLng(38.917988,-77.230499))
+        rectOptions.add(LatLng(38.908458,-77.214317))
+        rectOptions.add(LatLng(38.9057249,-77.2122041))
         map.addPolyline(rectOptions)
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(LatLng(38.9124267,-77.239105), 13f)
         map.animateCamera(cameraUpdate)

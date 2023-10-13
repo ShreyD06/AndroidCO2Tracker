@@ -57,7 +57,9 @@
 
         <activity
             android:name=".DriveDetails"
-            android:exported="false" />
+            android:exported="true">
+
+        </activity>
         <activity
             android:name=".TempMain"
             android:exported="true"
