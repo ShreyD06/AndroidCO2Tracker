@@ -24,14 +24,19 @@ class Login : AppCompatActivity() {
         button.setOnClickListener {
             val email = findViewById<EditText>(R.id.emailEditText).text.toString()
             val password = findViewById<EditText>(R.id.passwordEditText).text.toString()
-            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {task ->
-                if(task.isSuccessful) {
-                    val mainIntent = Intent(this, TempMain::class.java)
-                    startActivity(mainIntent)
+            if (email != "" && password != "") {
+                auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {task ->
+                    if(task.isSuccessful) {
+                        val mainIntent = Intent(this, TempMain::class.java)
+                        startActivity(mainIntent)
+                    }
+                    else {
+                        Toast.makeText(this, "Invalid Email or Password", Toast.LENGTH_LONG).show()
+                    }
                 }
-                else {
-                    Toast.makeText(this, "Invalid Email or Password", Toast.LENGTH_LONG).show()
-                }
+            }
+            else {
+                Toast.makeText(this, "You must enter email and password", Toast.LENGTH_LONG).show()
             }
         }
     }

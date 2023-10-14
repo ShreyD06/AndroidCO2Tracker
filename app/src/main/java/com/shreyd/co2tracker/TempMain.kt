@@ -374,11 +374,12 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 //
 //            println("Read Map")
 //            freqDrives.forEach {
-////                println("${it.key}, ${it.value}")
+//                println("${it.key}, ${it.value}")
 //                dbUsers.child("Frequent Drives").child(it.key).child("times").setValue(it.value)
 //            }
 //            sTimes.forEach {
-////                println("${it.key}, ${it.value}")
+//                println("READING THIS")
+//                println("${it.key}, ${it.value}")
 //                dbUsers.child("Frequent Drives").child(it.key).child("startTimes").setValue(it.value)
 //            }
         }
