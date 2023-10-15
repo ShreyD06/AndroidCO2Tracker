@@ -41,6 +41,7 @@ class FrequentDriveChoose : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        println("VIEW CREATED")
         val authUser = Firebase.auth.currentUser
         var email = ""
         authUser?.let{

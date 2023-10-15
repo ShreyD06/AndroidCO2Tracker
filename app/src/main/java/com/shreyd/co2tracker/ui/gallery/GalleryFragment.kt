@@ -36,6 +36,11 @@ class GalleryFragment : Fragment() {
         return root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        println("Created View")
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
