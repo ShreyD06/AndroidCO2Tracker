@@ -51,11 +51,13 @@ class FrequentDriveChoose : Fragment() {
         val id = email.replace(".", "").replace("#", "")
             .replace("$", "").replace("[", "").replace("]", "")
 
+        println("Got email")
         val dbFreqDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Frequent Drives")
 
         val driveListener = object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(ds in snapshot.children) {
+                    println("Adding FDrive")
                     drives.add(ds.getValue(FreqDrive::class.java)!!)
                 }
 
@@ -68,6 +70,8 @@ class FrequentDriveChoose : Fragment() {
         }
 
         dbFreqDrives.addListenerForSingleValueEvent(driveListener)
+
+        println("DRIVES: $drives")
 
         val adapter = FreqDriveAdapter(drives)
         binding.recyclerViewFrequentDrives.adapter = adapter

@@ -19,6 +19,7 @@ class FreqDriveAdapter(val mList: List<FreqDrive>) : RecyclerView.Adapter<FreqDr
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         val itemsViewModel = mList[position]
+        println(itemsViewModel.startLocS)
 
         holder.startLoc.text = "${itemsViewModel.startLocS}"
 
