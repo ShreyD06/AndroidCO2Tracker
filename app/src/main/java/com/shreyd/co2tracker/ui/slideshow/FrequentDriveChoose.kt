@@ -25,6 +25,8 @@ class FrequentDriveChoose : Fragment() {
 
     val drives = mutableListOf<FreqDrive>()
 
+    lateinit var adapter: FreqDriveAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +43,8 @@ class FrequentDriveChoose : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        adapter  = FreqDriveAdapter(drives)
+        binding.recyclerViewFrequentDrives.adapter = adapter
 
         println("VIEW CREATED")
         val authUser = Firebase.auth.currentUser
@@ -59,6 +63,7 @@ class FrequentDriveChoose : Fragment() {
                 for(ds in snapshot.children) {
                     println("Adding FDrive")
                     drives.add(ds.getValue(FreqDrive::class.java)!!)
+                    adapter.notifyDataSetChanged()
                 }
 
             }
@@ -73,8 +78,7 @@ class FrequentDriveChoose : Fragment() {
 
         println("DRIVES: $drives")
 
-        val adapter = FreqDriveAdapter(drives)
-        binding.recyclerViewFrequentDrives.adapter = adapter
+
     }
 
     override fun onDestroyView() {
