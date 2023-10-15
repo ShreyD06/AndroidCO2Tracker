@@ -41,7 +41,7 @@ class FrequentDriveChoose : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        TODO("This method is not being called")
+
         println("VIEW CREATED")
         val authUser = Firebase.auth.currentUser
         var email = ""
