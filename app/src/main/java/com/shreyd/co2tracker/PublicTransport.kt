@@ -2,6 +2,7 @@ package com.shreyd.co2tracker
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -10,6 +11,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
 import com.shreyd.co2tracker.model.GeocoderResponse
@@ -33,6 +40,33 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.mapRoute) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+
+        var button: Button = findViewById(R.id.pTransportButton)
+        val authUser = Firebase.auth.currentUser
+        var email = ""
+        authUser?.let{
+            email = it.email!!
+        }
+        val id = email.replace(".", "").replace("#", "")
+            .replace("$", "").replace("[", "").replace("]", "")
+
+//        button.setOnClickListener {
+//            val dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(id)
+//            val emmitListener = object: ValueEventListener {
+//                override fun onDataChange(snapshot: DataSnapshot) {
+//                    dbUsers.child("Saved Emissions").setValue(snapshot.child("Saved Emissions").toString().toDouble() +
+//                            snapshot.child("Frequent Drives").child(intent.getStringExtra("driveId")!!).child("emission").toString().toDouble())
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    println(error)
+//                }
+//
+//            }
+//
+//
+//            dbUsers.addListenerForSingleValueEvent(emmitListener)
+//        }
 
 
         val lat = "38.9081476"

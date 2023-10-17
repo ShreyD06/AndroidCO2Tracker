@@ -15,7 +15,8 @@ class Drive(
     var endTime: Long? = 0,
     var waypoints: List<List<Double?>>? = null,
     var emission: Double = 0.0,
-    var distance: Double = 0.0
+    var distance: Double = 0.0,
+    var savedEms: Double = 0.0
     )
 {
 }

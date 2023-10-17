@@ -64,6 +64,7 @@ class FrequentDriveChoose : Fragment() {
                     println("Adding FDrive")
                     drives.add(ds.getValue(FreqDrive::class.java)!!)
                     adapter.notifyDataSetChanged()
+                    println("DRIVES: $drives")
                 }
 
             }
@@ -76,7 +77,6 @@ class FrequentDriveChoose : Fragment() {
 
         dbFreqDrives.addListenerForSingleValueEvent(driveListener)
 
-        println("DRIVES: $drives")
 
 
     }

@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.auth.ktx.auth
@@ -18,6 +19,7 @@ import com.google.firebase.ktx.Firebase
 import com.shreyd.co2tracker.Drive
 import com.shreyd.co2tracker.Drive2
 import com.shreyd.co2tracker.DriveAdapter
+import com.shreyd.co2tracker.R
 import com.shreyd.co2tracker.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
@@ -45,6 +47,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         //Get Data From Firebase
         adapter = DriveAdapter(drives)
         binding.recycler.adapter = adapter

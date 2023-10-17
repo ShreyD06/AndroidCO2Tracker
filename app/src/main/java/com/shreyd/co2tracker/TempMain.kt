@@ -15,6 +15,8 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import android.view.Menu
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.google.android.material.snackbar.Snackbar
@@ -594,6 +596,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
     @RequiresApi(Build.VERSION_CODES.O)
     @Subscribe
     fun onDataReceived(event: ActivityTransitionReceiver.OnReceiverEvent) {
+
         // These 2 lines are for debug purposes
         print(event.getEvents())
         print("----------GOING TO SERVICE-------------")
