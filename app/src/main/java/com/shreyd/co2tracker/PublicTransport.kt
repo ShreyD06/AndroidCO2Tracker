@@ -50,23 +50,26 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
         val id = email.replace(".", "").replace("#", "")
             .replace("$", "").replace("[", "").replace("]", "")
 
-//        button.setOnClickListener {
-//            val dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(id)
-//            val emmitListener = object: ValueEventListener {
-//                override fun onDataChange(snapshot: DataSnapshot) {
-//                    dbUsers.child("Saved Emissions").setValue(snapshot.child("Saved Emissions").toString().toDouble() +
-//                            snapshot.child("Frequent Drives").child(intent.getStringExtra("driveId")!!).child("emission").toString().toDouble())
-//                }
-//
-//                override fun onCancelled(error: DatabaseError) {
-//                    println(error)
-//                }
-//
-//            }
-//
-//
-//            dbUsers.addListenerForSingleValueEvent(emmitListener)
-//        }
+        val dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(id)
+        button.setOnClickListener {
+
+            val emmitListener = object: ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    println("listening")
+                    println(snapshot.child("Frequent Drives").child("NfYnlMfZ2mOpk4WMPZF").child("emission").value.toString())
+                    dbUsers.child("Saved Emissions").setValue(snapshot.child("Saved Emissions").value.toString().toDouble() +
+                            snapshot.child("Frequent Drives").child(intent.getStringExtra("driveId")!!).child("emission").value.toString().toDouble())
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    println(error)
+                }
+
+            }
+
+
+            dbUsers.addListenerForSingleValueEvent(emmitListener)
+        }
 
 
         val lat = "38.9081476"
@@ -118,8 +121,10 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
 //
 //        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.legs.polyline,routes.legs.steps.navigationInstruction,routes.legs.steps.transitDetails").build()
 
+        println("outside")
 
         CoroutineScope(Dispatchers.Main).launch {
+
 //            okHttpClient.newCall(request2).enqueue(object: Callback {
 //                override fun onResponse(call: Call, response: Response) {
 //                    result = response.body?.string()
@@ -173,6 +178,7 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+        println("Inside")
 
 
 

@@ -117,7 +117,6 @@ class MyService: Service() {
     fun enter() {
         startForeground(NOTIFICATION_ID, createNotification())
 
-
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION

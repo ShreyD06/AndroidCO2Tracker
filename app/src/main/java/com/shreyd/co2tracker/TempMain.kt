@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import com.shreyd.co2tracker.databinding.ActivityTempMainBinding
 import com.shreyd.co2tracker.datastore.UserDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,8 @@ import java.lang.Long
 import kotlin.properties.Delegates
 import kotlin.math.*
 import com.shreyd.co2tracker.FreqDrive
+import com.shreyd.co2tracker.model.JustDistance
+import com.shreyd.co2tracker.model.RoutesResponse
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -306,6 +309,58 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                         catch (err: Error) {
                             println("Failed")
                         }
+
+                        //Calling the routes api only once due to pricing, otherwise it would be called with every drive
+                        val gDrive = ds.child("Drives").child("routesTest").getValue(Drive2::class.java)
+                        var partJson = ""
+                        val gson = Gson()
+
+                        var wp = 0
+                        if (gDrive != null) {
+                            for (waypoint in gDrive.waypoints!!) {
+                                wp++
+                                if(wp != gDrive.waypoints!!.size) {
+                                    partJson += "{\"location\":{\"latLng\":{\"latitude\":${waypoint[0]},\"longitude\":${waypoint[1]}}},\"via\":true},"
+                                }
+                                else {
+                                    partJson += "{\"location\":{\"latLng\":{\"latitude\":${waypoint[0]},\"longitude\":${waypoint[1]}}},\"via\":true}"
+                                }
+                            }
+                        }
+
+
+                        var okHttpClient: OkHttpClient = OkHttpClient()
+                        var result: String? = null
+                        val sUrl2 = "https://routes.googleapis.com/directions/v2:computeRoutes"
+                        val json = "{\"origin\":{\"address\":\"1944 Horse Shoe Drive, Vienna, VA\"},\"destination\":{\"address\":\"7731 Leesburg Pike, Falls Church, VA\"},\"intermediates\":[$partJson],\"travelMode\":\"DRIVE\"}"
+
+                        println(partJson)
+                        println("----------------------")
+                        println(json)
+                        val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
+                        val url2 = URL(sUrl2)
+
+                        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.localizedValues").build()
+
+                        okHttpClient.newCall(request2).enqueue(object: Callback {
+                            override fun onResponse(call: Call, response: Response) {
+                                result = response.body?.string()
+
+                                println(result)
+
+                                gson.fromJson(result, JustDistance::class.java)
+
+                                //Loop through drives and add distance to them here
+
+                            }
+
+                            override fun onFailure(call: Call, e: IOException) {
+                                e.printStackTrace()
+                            }
+
+                        })
+
+
                     }
 
                 }
