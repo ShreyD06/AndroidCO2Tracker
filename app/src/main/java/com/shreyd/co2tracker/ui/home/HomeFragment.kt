@@ -19,7 +19,7 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.shreyd.co2tracker.Drive
 import com.shreyd.co2tracker.Drive2
-//import com.shreyd.co2tracker.DriveAdapter
+import com.shreyd.co2tracker.DriveAdapter
 import com.shreyd.co2tracker.R
 import com.shreyd.co2tracker.databinding.FragmentHomeBinding
 
@@ -36,7 +36,7 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     val drives = mutableListOf<Drive2>()
-//    lateinit var adapter: DriveAdapter
+    lateinit var adapter: DriveAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,8 +81,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         //Get Data From Firebase
-//        adapter = DriveAdapter(drives)
-//        binding.recycler.adapter = adapter
+        adapter = DriveAdapter(drives)
+        binding.recycler.adapter = adapter
 
 
         val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives")
@@ -92,7 +92,7 @@ class HomeFragment : Fragment() {
                 Log.e("error", "Success")
                 change ++
                 if(change == 1) {
-                    val threshold = snapshot.childrenCount - 15
+                    val threshold = snapshot.childrenCount - 5
                     var countD = 0L
                     for(ds in snapshot.children) {
                         countD++
@@ -102,7 +102,7 @@ class HomeFragment : Fragment() {
                             println(drive.startTime)
                             println("-----------SIZE ${drives.size}--------------")
 
-//                            adapter.notifyDataSetChanged()
+                            adapter.notifyDataSetChanged()
                         }
 
                     }

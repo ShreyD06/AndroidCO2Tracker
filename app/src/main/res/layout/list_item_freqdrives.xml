@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:strokeWidth="3dp"
-    app:strokeColor="@color/teal_700"
+    app:strokeColor="@color/primary_blue"
     android:layout_height="wrap_content"
     android:id="@+id/MCView">
     <LinearLayout

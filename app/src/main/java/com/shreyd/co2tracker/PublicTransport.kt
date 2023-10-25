@@ -1,5 +1,6 @@
 package com.shreyd.co2tracker
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -71,6 +72,14 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
             dbUsers.addListenerForSingleValueEvent(emmitListener)
         }
 
+        val eButton: Button = findViewById(R.id.exit)
+
+        eButton.setOnClickListener {
+            println("Clicked!")
+            val tmIntent = Intent(this, TempMain::class.java)
+            startActivity(tmIntent)
+        }
+
 
         val lat = "38.9081476"
         val lon = "-77.2240058"
@@ -106,43 +115,43 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         println("--------MAP READY--------")
 
-//        var okHttpClient: OkHttpClient = OkHttpClient()
-//
-//        var result: String? = null
+        var okHttpClient: OkHttpClient = OkHttpClient()
+
+        var result: String? = null
 //
         val gson = Gson()
 //
-//        val sUrl2 = "https://routes.googleapis.com/directions/v2:computeRoutes"
-//
-//        val json = "{\"origin\":{\"address\":\"1944 Horse Shoe Drive, Vienna, VA\"},\"destination\":{\"address\":\"7500 GEOINT Drive, Springfield, VA\"},\"travelMode\":\"TRANSIT\"}"
-//
-//        val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
-//        val url2 = URL(sUrl2)
-//
-//        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.legs.polyline,routes.legs.steps.navigationInstruction,routes.legs.steps.transitDetails").build()
+        val sUrl2 = "https://routes.googleapis.com/directions/v2:computeRoutes"
+
+        val json = "{\"origin\":{\"address\":\"1944 Horse Shoe Drive, Vienna, VA\"},\"destination\":{\"address\":\"7731 Leesburg Pike, Falls Church, VA\"},\"travelMode\":\"TRANSIT\"}"
+
+        val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
+        val url2 = URL(sUrl2)
+
+        val request2 = Request.Builder().post(body).url(url2).addHeader("Content-Type", "application/json").addHeader("X-Goog-Api-Key", Constants.GMAPKEY).addHeader("X-Goog-FieldMask", "routes.legs.polyline,routes.legs.steps.navigationInstruction,routes.legs.steps.transitDetails").build()
 
         println("outside")
 
         CoroutineScope(Dispatchers.Main).launch {
 
-//            okHttpClient.newCall(request2).enqueue(object: Callback {
-//                override fun onResponse(call: Call, response: Response) {
-//                    result = response.body?.string()
-//                    routeResult = gson.fromJson(result, RoutesResponse::class.java)
-//                    polyline = routeResult.routes[0].legs[0].polyline.encodedPolyline
-//                    println(result)
-//
-//                }
-//
-//                override fun onFailure(call: Call, e: IOException) {
-//                    e.printStackTrace()
-//                }
-//
-//            })
+            okHttpClient.newCall(request2).enqueue(object: Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    result = response.body?.string()
+                    routeResult = gson.fromJson(result, RoutesResponse::class.java)
+                    polyline = routeResult.routes[0].legs[0].polyline.encodedPolyline
+                    println(result)
+
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    e.printStackTrace()
+                }
+
+            })
 
 
-            routeResult = gson.fromJson(Constants.response, RoutesResponse::class.java)
-            polyline = routeResult.routes[0].legs[0].polyline.encodedPolyline
+//            routeResult = gson.fromJson(Constants.response, RoutesResponse::class.java)
+//            polyline = routeResult.routes[0].legs[0].polyline.encodedPolyline
 
             delay(4000)
 
@@ -165,7 +174,7 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
 
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(resp[0], 11f))
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(resp[0], 14f))
 
             val stops: TextView = findViewById(R.id.stops)
             //Transit Type + Depart Dest + Arrival Dest

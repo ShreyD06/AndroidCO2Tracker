@@ -532,9 +532,11 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             && !ActivityTransitionsUtil.hasActivityTransitionPermissions(this)
         ) {
             // request for permission
+            println("REQUESTING PERMISSION")
             requestActivityTransitionPermission()
         } else {
             // when permission is already allowed
+            println("REQUESTING UPDATES")
             requestForUpdates()
         }
 //        userDataStoreDemo()
@@ -615,7 +617,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
         emissions += 16
         dbUsers.child("Drives").child(drive!!).child("emission").setValue(16)
-        newDrives[count-1].emission = 16.0
+//        newDrives[count-1].emission = 16.0
 
 
         println(count)
@@ -829,7 +831,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             this,
             Constants.REQUEST_CODE_INTENT_ACTIVITY_TRANSITION,
             intent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
 

@@ -30,6 +30,9 @@ class ActivityTransitionReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        println("RECEIVED")
+        println(ActivityTransitionResult.extractResult(intent))
+        println(intent.extras)
         if (ActivityTransitionResult.hasResult(intent)) {
             val result = ActivityTransitionResult.extractResult(intent)
             println(result?.transitionEvents)
@@ -57,7 +60,7 @@ class ActivityTransitionReceiver : BroadcastReceiver() {
                         spannableString.setSpan(
                             AbsoluteSizeSpan(100), 0, spannableString.length, 0
                         )
-                        val toast = Toast.makeText(context, spannableString, Toast.LENGTH_LONG)
+                        val toast = Toast.makeText(context.applicationContext, otherSInfo, Toast.LENGTH_LONG)
 
                         println("CALLING TOAST")
                         toast.show()

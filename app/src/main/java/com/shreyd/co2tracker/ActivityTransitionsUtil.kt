@@ -13,7 +13,7 @@ object ActivityTransitionsUtil {
     private fun getTransitions(): MutableList<ActivityTransition> {
 
         // List of activity transitions to track
-        val transitions = mutableListOf<ActivityTransition>()
+        val transitions: MutableList<ActivityTransition> = ArrayList()
 
         transitions +=
             ActivityTransition.Builder()
@@ -25,6 +25,12 @@ object ActivityTransitionsUtil {
             ActivityTransition.Builder()
                 .setActivityType(DetectedActivity.IN_VEHICLE)
                 .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                .build()
+
+        transitions +=
+            ActivityTransition.Builder()
+                .setActivityType(DetectedActivity.WALKING)
+                .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
                 .build()
 
         return transitions

@@ -51,9 +51,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/startTime"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="8:06 PM 10/7/2023"
+                android:text="9:48 AM 10/25/2023"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -71,9 +72,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/endTime"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="9:33 PM 10/7/2023"
+                android:text="10:05 AM 10/25/2023"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -91,9 +93,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/startLoc"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="12.843938,28.645810"
+                android:text="38.9124299, -77.2390732"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -111,9 +114,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/endLoc"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="23.467498,89.907390"
+                android:text="38.9068003, -77.2108548"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -131,9 +135,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/distance"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="100 km"
+                android:text="3.3 mi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -151,12 +156,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <TextView
+                android:id="@+id/emission"
                 android:textStyle="bold"
                 android:textSize="18sp"
-                android:text="0.05 kg"
+                android:text="16 kg"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
+
+        <Button
+            android:id="@+id/backButton"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+             />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
