@@ -12,7 +12,7 @@ class Drive2 {
     var endTime: Long? = 0
     var waypoints: List<List<Double?>>? = null
     var emission: Double = 0.0
-    var distance: Double = 0.0
+    var distance: String = ""
     var savedEms: Double = 0.0
 
     private constructor() {}
@@ -23,7 +23,7 @@ class Drive2 {
                 endTime: Long?,
                 waypoints: List<List<Double?>>?,
                 emission: Double,
-                distance: Double,
+                distance: String,
                 savedEms: Double
                 ) {
         this.id = id

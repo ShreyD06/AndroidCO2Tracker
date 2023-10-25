@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -18,20 +19,24 @@ import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.shreyd.co2tracker.Drive
 import com.shreyd.co2tracker.Drive2
-import com.shreyd.co2tracker.DriveAdapter
+//import com.shreyd.co2tracker.DriveAdapter
 import com.shreyd.co2tracker.R
 import com.shreyd.co2tracker.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
+    private var savedEms: TextView? = null
+    private var totalEms: TextView? = null
+    private lateinit var authUser: FirebaseUser
+    private lateinit var id: String
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
     val drives = mutableListOf<Drive2>()
-    lateinit var adapter: DriveAdapter
+//    lateinit var adapter: DriveAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,22 +47,43 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        savedEms = _binding!!.co2emits
+        totalEms = _binding!!.totalEmission
+
+        authUser = Firebase.auth.currentUser!!
+        var email = ""
+        authUser.let{
+            email = it.email!!
+        }
+        id = email.replace(".", "").replace("#", "")
+            .replace("$", "").replace("[", "").replace("]", "")
+
+        val dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(id)
+
+        dbUsers.child("Emissions").get().addOnSuccessListener {
+            totalEms!!.text = it.value.toString()
+        }.addOnFailureListener{
+            Log.e("firebase", "Error getting data", it)
+        }
+
+        dbUsers.child("Saved Emissions").get().addOnSuccessListener {
+            savedEms!!.text = it.value.toString()
+        }.addOnFailureListener{
+            Log.e("firebase", "Error getting data", it)
+        }
+
+
         return root
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         //Get Data From Firebase
-        adapter = DriveAdapter(drives)
-        binding.recycler.adapter = adapter
-        val authUser = Firebase.auth.currentUser
-        var email = ""
-        authUser?.let{
-            email = it.email!!
-        }
-        val id = email.replace(".", "").replace("#", "")
-            .replace("$", "").replace("[", "").replace("]", "")
+//        adapter = DriveAdapter(drives)
+//        binding.recycler.adapter = adapter
+
 
         val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives")
         var change = 0
@@ -66,13 +92,19 @@ class HomeFragment : Fragment() {
                 Log.e("error", "Success")
                 change ++
                 if(change == 1) {
+                    val threshold = snapshot.childrenCount - 15
+                    var countD = 0L
                     for(ds in snapshot.children) {
-                        val drive = ds.getValue(Drive2::class.java)
-                        drives.add(drive!!)
-                        println(drive.startTime)
-                        println("-----------SIZE ${drives.size}--------------")
+                        countD++
+                        if (countD > threshold) {
+                            val drive = ds.getValue(Drive2::class.java)
+                            drives.add(drive!!)
+                            println(drive.startTime)
+                            println("-----------SIZE ${drives.size}--------------")
 
-                        adapter.notifyDataSetChanged()
+//                            adapter.notifyDataSetChanged()
+                        }
+
                     }
                }
 

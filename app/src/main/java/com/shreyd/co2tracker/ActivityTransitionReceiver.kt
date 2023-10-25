@@ -58,7 +58,8 @@ class ActivityTransitionReceiver : BroadcastReceiver() {
                             AbsoluteSizeSpan(100), 0, spannableString.length, 0
                         )
                         val toast = Toast.makeText(context, spannableString, Toast.LENGTH_LONG)
-                        toast.setGravity(Gravity.CENTER, 0, 0)
+
+                        println("CALLING TOAST")
                         toast.show()
 
                         //print statement is for debugging purposes

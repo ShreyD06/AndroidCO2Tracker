@@ -2,10 +2,13 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/teal_700"
+    app:strokeWidth="2dp"
+    app:strokeColor="@color/white"
+    app:cardBackgroundColor="@color/primary_blue"
     android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:id="@+id/MCView">
+
     <LinearLayout
         android:padding="8dp"
         android:orientation="vertical"
@@ -17,6 +20,7 @@
             android:textStyle="bold"
             android:gravity="center"
             android:text="12km"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
@@ -26,6 +30,16 @@
             android:textStyle="bold"
             android:gravity="center"
             android:text="0.2 kg"
+            android:textColor="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/date"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="21/10/2023"
+            android:textColor="@color/white"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>

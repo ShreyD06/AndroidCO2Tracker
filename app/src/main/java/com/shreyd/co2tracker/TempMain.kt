@@ -6,17 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.icu.text.SimpleDateFormat
-import android.location.Location.distanceBetween
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.google.android.material.snackbar.Snackbar
@@ -29,19 +24,14 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.datastore.preferences.core.edit
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.common.internal.safeparcel.SafeParcelableSerializer
 import com.google.android.gms.location.*
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.shreyd.co2tracker.databinding.ActivityTempMainBinding
@@ -61,13 +51,10 @@ import java.io.IOException
 import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
-import com.shreyd.co2tracker.Drive
-import java.lang.Long
 import kotlin.properties.Delegates
 import kotlin.math.*
-import com.shreyd.co2tracker.FreqDrive
+import com.shreyd.co2tracker.model.CO2Reponse
 import com.shreyd.co2tracker.model.JustDistance
-import com.shreyd.co2tracker.model.RoutesResponse
 
 class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
@@ -266,6 +253,10 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                     //ONLY LOAD IN DRIVES FROM HERE, MAKE API CALLS OUTSIDE onDataChange()
                     count++
                     if(count == 1) {
+                        //Calling the routes api only once due to pricing, otherwise it would be called with every drive
+                        val threshold2 = ds.child("Drives").childrenCount - 15
+
+
                         try {
                             for(drive in ds.child("Drives").children) {
                                 if(drive.child("emission").value.toString().toDouble() == 0.0) {
@@ -273,6 +264,8 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                 }
                             }
                             var count2 = 0
+
+                            val threshold = ds.child("Drives").childrenCount - 15
 
                             for(drive in ds.child("Drives").children) {
                                 var tDrive = drive.getValue(Drive2::class.java)
@@ -283,26 +276,27 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                                     if(ds.child("cartype").value.toString() == "Sedan") {
                                         println("MAKING API CALL")
                                         val activity_id = "passenger_vehicle-vehicle_type_car-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2, threshold)
                                     }
-
                                     else if(ds.child("cartype").value.toString() == "Motorcycle") {
                                         println("MAKING API CALL")
                                         val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2, threshold)
                                     }
-
                                     else if(ds.child("cartype").value.toString() == "Pickup Truck/Minivan") {
                                         println("MAKING API CALL")
                                         val activity_id = "commercial_vehicle-vehicle_type_truck_light-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2, threshold)
                                     }
-
                                     else if(ds.child("cartype").value.toString() == "Truck") {
                                         println("MAKING API CALL")
                                         val activity_id = "passenger_vehicle-vehicle_type_motorcycle-fuel_source_na-engine_size_na-vehicle_age_na-vehicle_weight_na"
-                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2)
+                                        carApiRequest("https://beta4.api.climatiq.io/estimate", activity_id, ds.child("Emissions").value.toString().toDouble(), drive.key, count2, threshold)
                                     }
+
+
+
+
                                 }
                             }
                         }
@@ -310,7 +304,6 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                             println("Failed")
                         }
 
-                        //Calling the routes api only once due to pricing, otherwise it would be called with every drive
                         val gDrive = ds.child("Drives").child("routesTest").getValue(Drive2::class.java)
                         var partJson = ""
                         val gson = Gson()
@@ -348,9 +341,16 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
                                 println(result)
 
-                                gson.fromJson(result, JustDistance::class.java)
+                                val distResp = gson.fromJson(result, JustDistance::class.java)
 
                                 //Loop through drives and add distance to them here
+
+                                for (drive in ds.child("Drives").children) {
+
+                                    dbUsers.child("Drives").child(drive.key!!).child("distance").setValue(distResp.routes[0].localizedValues.distance.text)
+
+
+                                }
 
                             }
 
@@ -359,7 +359,6 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
                             }
 
                         })
-
 
                     }
 
@@ -372,7 +371,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             }
 
             dbUsers.addListenerForSingleValueEvent(userListener)
-            println(newDrives)
+//            println(newDrives)
 
             var iter = 0
             val renewed = mutableListOf<Drive>()
@@ -574,50 +573,58 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
 
 
-    private fun carApiRequest(sUrl: String, activityId: String, currentEmissions: Double, drive: String?, count: Int): String? {
-        val distance = 50
-        var okHttpClient: OkHttpClient = OkHttpClient()
-        var result: String? = null
-        val json = "{\"emission_factor\":{\"activity_id\":\"$activityId\", \"data_version\":\"4.4\", \"region\":\"US\"}, \"parameters\":{\"distance\":$distance, \"distance_unit\":\"mi\"}}"
-        try {
-//            val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
-//
-//            val url = URL(sUrl)
-//
-//            val request = Request.Builder().post(body).url(url).addHeader("Authorization", "Bearer: ${Constants.KEY}").build()
-//
-//            okHttpClient.newCall(request).enqueue(object: Callback {
-//                override fun onResponse(call: Call, response: Response) {
-//                    result = response.body?.string()
-//                    println(result)
-//                    println(result?.subSequence(8, result!!.indexOf(",")))
-//                    val em = result?.subSequence(8, result!!.indexOf(",")).toString().toDouble()
-//                    val totalEm = currentEmissions + em
-//                    println(drive)
-//                    dbUsers.child("Emissions").setValue(totalEm)
-//                    dbUsers.child("Drives").child(drive!!).child("emission").setValue(em)
-//                }
-//
-//                override fun onFailure(call: Call, e: IOException) {
-//                    e.printStackTrace()
-//                }
+    private fun carApiRequest(sUrl: String, activityId: String, currentEmissions: Double, drive: String?, count: Int, threshold: kotlin.Long): String? {
 
+        var okHttpClient: OkHttpClient = OkHttpClient()
+        val gson = Gson()
+        var result: String? = null
+        val distance = 50
+//        if(count.toLong() > threshold) {
+//            val json = "{\"emission_factor\":{\"activity_id\":\"$activityId\", \"data_version\":\"4.4\", \"region\":\"US\"}, \"parameters\":{\"distance\":$distance, \"distance_unit\":\"mi\"}}"
+//            try {
+//                val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
 //
-//            })
-            emissions += 16
-            println(count)
-            dbUsers.child("Drives").child(drive!!).child("emission").setValue(16)
-            newDrives[count-1].emission = 16.0
-            //Don't call actual API till RawDrives are empty, otherwise, the Drives node under the user will always have all drives "emission" be 0, since
-            // the drives are being created new every time
-            println("PSUEDO API CALL MADE")
-            if(count == lenDrives) {
-                dbUsers.child("Emissions").setValue(emissions)
-            }
-            return result
-        }
-        catch(err:Error) {
-            print("Error when executing get request: "+err.localizedMessage)
+//                val url = URL(sUrl)
+//
+//                val request = Request.Builder().post(body).url(url).addHeader("Authorization", "Bearer: ${Constants.KEY}").build()
+//
+//                okHttpClient.newCall(request).enqueue(object: Callback {
+//                    override fun onResponse(call: Call, response: Response) {
+//                        result = response.body?.string()
+////                    println(result)
+//                        val cResp = gson.fromJson(result, CO2Reponse::class.java)
+//                        val em = cResp.co2e
+//                        emissions + cResp.co2e
+//                        newDrives[count-1].emission = em
+//
+//                        dbUsers.child("Drives").child(drive!!).child("emission").setValue(em)
+//                    }
+//
+//                    override fun onFailure(call: Call, e: IOException) {
+//                        e.printStackTrace()
+//                    }
+//                })
+//
+//                //calculate rest of emissions here: 16*number of remaining drives
+//                return result
+//            }
+//            catch(err:Error) {
+//                print("Error when executing get request: "+err.localizedMessage)
+//            }
+//        }
+
+        emissions += 16
+        dbUsers.child("Drives").child(drive!!).child("emission").setValue(16)
+        newDrives[count-1].emission = 16.0
+
+
+        println(count)
+
+        //Don't call actual API till RawDrives are empty, otherwise, the Drives node under the user will always have all drives "emission" be 0, since
+        // the drives are being created new every time
+        println("PSUEDO API CALL MADE")
+        if(count == lenDrives) {
+            dbUsers.child("Emissions").setValue(emissions)
         }
         return result
     }
