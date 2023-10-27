@@ -55,7 +55,8 @@ class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
         val button: Button = findViewById(R.id.backButton)
         button.setOnClickListener {
             val tmIntent = Intent(this, TempMain::class.java)
-            startActivity(tmIntent)
+            tmIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            startActivityIfNeeded(tmIntent, 0)
         }
 
 

@@ -22,6 +22,7 @@ import com.shreyd.co2tracker.Drive2
 import com.shreyd.co2tracker.DriveAdapter
 import com.shreyd.co2tracker.R
 import com.shreyd.co2tracker.databinding.FragmentHomeBinding
+import kotlin.properties.Delegates
 
 class HomeFragment : Fragment() {
 
@@ -30,6 +31,7 @@ class HomeFragment : Fragment() {
     private var totalEms: TextView? = null
     private lateinit var authUser: FirebaseUser
     private lateinit var id: String
+    private var numEnter = 0
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -43,6 +45,8 @@ class HomeFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        numEnter++
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -85,39 +89,41 @@ class HomeFragment : Fragment() {
         binding.recycler.adapter = adapter
 
 
-        val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives")
-        var change = 0
-        val driveListener = object: ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                Log.e("error", "Success")
-                change ++
-                if(change == 1) {
-                    val threshold = snapshot.childrenCount - 5
-                    var countD = 0L
-                    for(ds in snapshot.children) {
-                        countD++
-                        if (countD > threshold) {
-                            val drive = ds.getValue(Drive2::class.java)
-                            drives.add(drive!!)
-                            println(drive.startTime)
-                            println("-----------SIZE ${drives.size}--------------")
+        if(numEnter == 1) {
+            val dbUserDrives = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives")
+            var change = 0
+            val driveListener = object: ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.e("error", "Success")
+                    change ++
+                    if(change == 1) {
+                        val threshold = snapshot.childrenCount - 5
+                        var countD = 0L
+                        for(ds in snapshot.children) {
+                            countD++
+                            if (countD > threshold) {
+                                val drive = ds.getValue(Drive2::class.java)
+                                drives.add(drive!!)
+                                println(drive.startTime)
+                                println("-----------SIZE ${drives.size}--------------")
+                                println(countD)
 
-                            adapter.notifyDataSetChanged()
+                                adapter.notifyDataSetChanged()
+                            }
+
                         }
-
                     }
-               }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("error", error.details)
+                    println(error)
+                }
 
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("error", error.details)
-                println(error)
-            }
-
+            dbUserDrives.addValueEventListener(driveListener)
         }
-
-        dbUserDrives.addValueEventListener(driveListener)
 
 
 

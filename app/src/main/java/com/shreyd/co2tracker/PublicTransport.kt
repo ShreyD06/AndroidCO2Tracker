@@ -77,7 +77,8 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
         eButton.setOnClickListener {
             println("Clicked!")
             val tmIntent = Intent(this, TempMain::class.java)
-            startActivity(tmIntent)
+            tmIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            startActivityIfNeeded(tmIntent, 0)
         }
 
 
