@@ -40,10 +40,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity
-            android:name=".MapsActivity"
-            android:exported="true"
-            android:label="@string/title_activity_maps"></activity>
+
         <activity
             android:name=".PublicTransport"
             android:exported="true"></activity>
@@ -73,9 +70,7 @@
         <activity
             android:name=".Activity2"
             android:exported="false" />
-        <activity
-            android:name=".Calculate"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true" />

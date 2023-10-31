@@ -377,6 +377,8 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
             val renewed = mutableListOf<Drive>()
             val freqDrives = mutableMapOf<String, Int>()
             val sTimes = mutableMapOf<String, MutableList<kotlin.Long?>>()
+
+            //Frequent Drives Calculation Code - Was used in app but commented for demo due to large amount of drives it outputted
 //
 //            val fDrivesListener = object : ValueEventListener {
 //                override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -581,6 +583,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         val gson = Gson()
         var result: String? = null
         val distance = 50
+        //API call commented due to monetary limit on API calls
 //        if(count.toLong() > threshold) {
 //            val json = "{\"emission_factor\":{\"activity_id\":\"$activityId\", \"data_version\":\"4.4\", \"region\":\"US\"}, \"parameters\":{\"distance\":$distance, \"distance_unit\":\"mi\"}}"
 //            try {
