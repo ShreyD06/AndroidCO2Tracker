@@ -9,7 +9,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-
+//Unused Class
 class DefaultLocationClient(private val context: Context, private val client: FusedLocationProviderClient): LocationClient {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun getLocationUpdates(interval: Long): Flow<Location> {

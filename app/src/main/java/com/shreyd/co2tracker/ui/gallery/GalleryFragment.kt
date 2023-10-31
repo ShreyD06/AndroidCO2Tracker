@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.shreyd.co2tracker.databinding.FragmentGalleryBinding
 
 class GalleryFragment : Fragment() {
+    //This Fragment is unused a used as a test
 
     private var _binding: FragmentGalleryBinding? = null
 

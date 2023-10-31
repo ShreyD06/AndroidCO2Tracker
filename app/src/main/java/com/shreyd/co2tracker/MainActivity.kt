@@ -36,6 +36,9 @@ import kotlinx.coroutines.launch
 
 
 // Create a button that starts the foreground service for activity transition recognition, then add the restart on reboot functionality
+
+
+//Unused Class
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     lateinit var client: ActivityRecognitionClient

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Register"
-    android:background="@android:color/darker_gray"
+    android:background="@color/primary_blue"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:text="Register"
         android:textSize="40sp"
-        android:textColor="#42A5FF"
+        android:textColor="@color/white"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="50dp"
         android:layout_marginBottom="50dp" />
@@ -65,7 +65,7 @@
         android:layout_margin="20dp"
         android:background="@drawable/dropdown_bg"
         android:layout_gravity="center_horizontal"
-        app:boxBackgroundColor="@color/Cblue"
+        app:boxBackgroundColor="@color/primary_green"
         app:boxCornerRadiusBottomEnd="20dp"
         app:boxCornerRadiusBottomStart="20dp"
         app:boxCornerRadiusTopEnd="20dp"

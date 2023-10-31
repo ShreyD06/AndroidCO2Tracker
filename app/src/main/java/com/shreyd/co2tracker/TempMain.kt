@@ -593,7 +593,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 //                okHttpClient.newCall(request).enqueue(object: Callback {
 //                    override fun onResponse(call: Call, response: Response) {
 //                        result = response.body?.string()
-////                    println(result)
+//
 //                        val cResp = gson.fromJson(result, CO2Reponse::class.java)
 //                        val em = cResp.co2e
 //                        emissions + cResp.co2e
