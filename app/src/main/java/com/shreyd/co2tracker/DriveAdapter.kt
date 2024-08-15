@@ -44,7 +44,7 @@ class DriveAdapter(private val mList: List<Drive2>) : RecyclerView.Adapter<Drive
         holder.itemView.setOnClickListener {
             Log.e("here", "clicked")
             val ddIntent = Intent(holder.itemView.context, DriveDetails::class.java)
-            println(itemsViewModel.id)
+            println("VID" + itemsViewModel.id)
             ddIntent.putExtra("driveId", itemsViewModel.id)
             holder.itemView.context.startActivity(ddIntent)
         }

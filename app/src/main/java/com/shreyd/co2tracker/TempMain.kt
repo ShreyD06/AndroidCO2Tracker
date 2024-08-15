@@ -80,10 +80,10 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
         setSupportActionBar(binding.appBarTempMain.toolbar)
 
-        binding.appBarTempMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+//        binding.appBarTempMain.fab.setOnClickListener { view ->
+//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show()
+//        }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_temp_main)
@@ -112,6 +112,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
         val rawDrives = mutableListOf<Drive>()
         val dbRawDrives = FirebaseDatabase.getInstance().getReference("RawDrives")
         val synthDrives = mutableListOf<Drive>()
+
         dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(userEmail)
         lenDrives = 0
         emissions = 0.0
@@ -119,6 +120,7 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 
 
         CoroutineScope(Dispatchers.IO).launch {
+
             val driveListener = object : ValueEventListener {
                 var change = 0
                 var times = 0
@@ -478,48 +480,48 @@ class TempMain : AppCompatActivity(), EasyPermissions.PermissionCallbacks  {
 //            dbUsers.child("Frequent Drives").addListenerForSingleValueEvent(timeListener)
 //        }
 
-        val intent = Intent(this, ActivityTransitionReceiver::class.java)
-        val intent2 = Intent(this, ActivityTransitionReceiver::class.java)
-        intent.action = "MYLISTENINGACTION"
-        intent2.action = "MYLISTENINGACTION"
-        val events: MutableList<ActivityTransitionEvent> = ArrayList()
-        var transitionEvent: ActivityTransitionEvent
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.STILL,
-            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
-        )
-        events.add(transitionEvent)
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.IN_VEHICLE,
-            ActivityTransition.ACTIVITY_TRANSITION_ENTER, SystemClock.elapsedRealtimeNanos()
-        )
-        events.add(transitionEvent)
-
-        val result = ActivityTransitionResult(events)
-        SafeParcelableSerializer.serializeToIntentExtra(
-            result, intent,
-            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
-        )
-        val events2: MutableList<ActivityTransitionEvent> = ArrayList()
-        transitionEvent = ActivityTransitionEvent(
-            DetectedActivity.IN_VEHICLE,
-            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
-        )
-        events2.add(transitionEvent)
-
-        val result2 = ActivityTransitionResult(events2)
-        SafeParcelableSerializer.serializeToIntentExtra(
-            result2, intent2,
-            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
-        )
-
-
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(5000)
-            sendBroadcast(intent)
-            delay(5000)
-            sendBroadcast(intent2)
-        }
+//        val intent = Intent(this, ActivityTransitionReceiver::class.java)
+//        val intent2 = Intent(this, ActivityTransitionReceiver::class.java)
+//        intent.action = "MYLISTENINGACTION"
+//        intent2.action = "MYLISTENINGACTION"
+//        val events: MutableList<ActivityTransitionEvent> = ArrayList()
+//        var transitionEvent: ActivityTransitionEvent
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.STILL,
+//            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events.add(transitionEvent)
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.IN_VEHICLE,
+//            ActivityTransition.ACTIVITY_TRANSITION_ENTER, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events.add(transitionEvent)
+//
+//        val result = ActivityTransitionResult(events)
+//        SafeParcelableSerializer.serializeToIntentExtra(
+//            result, intent,
+//            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
+//        )
+//        val events2: MutableList<ActivityTransitionEvent> = ArrayList()
+//        transitionEvent = ActivityTransitionEvent(
+//            DetectedActivity.IN_VEHICLE,
+//            ActivityTransition.ACTIVITY_TRANSITION_EXIT, SystemClock.elapsedRealtimeNanos()
+//        )
+//        events2.add(transitionEvent)
+//
+//        val result2 = ActivityTransitionResult(events2)
+//        SafeParcelableSerializer.serializeToIntentExtra(
+//            result2, intent2,
+//            "com.google.android.location.internal.EXTRA_ACTIVITY_TRANSITION_RESULT"
+//        )
+//
+//
+//        CoroutineScope(Dispatchers.Main).launch {
+//            delay(5000)
+//            sendBroadcast(intent)
+//            delay(5000)
+//            sendBroadcast(intent2)
+//        }
 
         // The Activity Recognition Client returns a
         // list of activities that a user might be doing

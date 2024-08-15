@@ -3,8 +3,11 @@ package com.shreyd.co2tracker
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -12,6 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.material.internal.ContextUtils.getActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -28,8 +32,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 import java.net.URL
-
-
+import java.security.AccessController.getContext
 
 
 class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
@@ -42,6 +45,8 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.mapRoute) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
 
+
+
         var button: Button = findViewById(R.id.pTransportButton)
         val authUser = Firebase.auth.currentUser
         var email = ""
@@ -50,6 +55,7 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
         }
         val id = email.replace(".", "").replace("#", "")
             .replace("$", "").replace("[", "").replace("]", "")
+        val context = this
 
         val dbUsers = FirebaseDatabase.getInstance().getReference("Users").child(id)
         button.setOnClickListener {
@@ -124,7 +130,7 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
 //
         val sUrl2 = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
-        val json = "{\"origin\":{\"address\":\"1944 Horse Shoe Drive, Vienna, VA\"},\"destination\":{\"address\":\"7731 Leesburg Pike, Falls Church, VA\"},\"travelMode\":\"TRANSIT\"}"
+        val json = "{\"origin\":{\"address\":\"1944 Horse Shoe Drive, Vienna, VA\"},\"destination\":{\"address\":\"10th St. & Constitution Ave. NW, Washington, DC 20560\"},\"travelMode\":\"TRANSIT\"}"
 
         val body: RequestBody = json.toRequestBody("/application/json".toMediaTypeOrNull())
         val url2 = URL(sUrl2)
@@ -167,8 +173,19 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
             val markers = routeResult.routes[0].legs[0].steps
             println(markers.size)
             val markerO = MarkerOptions()
+
+            lateinit var adapter: PtAdapter
+            val stops = mutableListOf<RoutesResponse.Route.Leg.Step>()
+            adapter = PtAdapter(stops)
+            val recycler = findViewById<View>(R.id.recycler_pt) as RecyclerView
+            recycler.adapter = adapter
+
             markers.forEach {
                 if(it.transitDetails != null) {
+                    map.addMarker(markerO.position(LatLng(
+                        it.transitDetails.stopDetails.departureStop.location.latLng.latitude,
+                        it.transitDetails.stopDetails.departureStop.location.latLng.longitude)).title("Marker!"))
+
                     map.addMarker(markerO.position(LatLng(
                         it.transitDetails.stopDetails.arrivalStop.location.latLng.latitude,
                         it.transitDetails.stopDetails.arrivalStop.location.latLng.longitude)).title("Marker!"))
@@ -177,12 +194,23 @@ class PublicTransport : AppCompatActivity(), OnMapReadyCallback {
 
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(resp[0], 14f))
 
-            val stops: TextView = findViewById(R.id.stops)
+
             //Transit Type + Depart Dest + Arrival Dest
             markers.forEach {
+                var someString = ""
                 if(it.transitDetails != null) {
-                    val someString = "${it.transitDetails.transitLine.vehicle.name.text}       ${it.transitDetails.stopDetails.departureStop.name} -> ${it.transitDetails.stopDetails.arrivalStop.name}\n${it.transitDetails.transitLine.name}\n${it.transitDetails.transitLine.nameShort}\n\n"
-                    stops.text = stops.text as String + someString
+                    if (it.transitDetails.transitLine.vehicle.name.text == "Bus") {
+//                        someString = "${it.transitDetails.transitLine.vehicle.name.text}       ${it.transitDetails.stopDetails.departureStop.name} -> ${it.transitDetails.stopDetails.arrivalStop.name}\n${it.transitDetails.transitLine.name}\n${it.transitDetails.transitLine.nameShort}\n\n"
+                        stops.add(it)
+                        adapter.notifyItemInserted(stops.size - 1 )
+                    }
+                    else if (it.transitDetails.transitLine.vehicle.name.text == "Subway") {
+//                        someString = "${it.transitDetails.transitLine.vehicle.name.text}       ${it.transitDetails.stopDetails.departureStop.name} -> ${it.transitDetails.stopDetails.arrivalStop.name}\n${it.transitDetails.transitLine.name}\n\n"
+                        stops.add(it)
+                        adapter.notifyDataSetChanged()
+
+                    }
+
                 }
 
             }

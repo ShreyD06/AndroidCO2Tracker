@@ -19,6 +19,20 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="TrainBulletList">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:drawablePadding">1dp</item>
+        <item name="android:drawableLeft">@drawable/baseline_train_24</item>
+    </style>
+
+    <style name="BusBulletList">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:drawableLeft">@drawable/baseline_directions_bus_24</item>
+    </style>
+
     <style name="Theme.CO2Tracker.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.CO2Tracker.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />

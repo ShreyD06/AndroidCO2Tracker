@@ -39,6 +39,7 @@
         app:layout_constraintTop_toBottomOf="@+id/frameLayout">
 
         <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -52,6 +53,16 @@
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_pt"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="12dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:spanCount="3"
+                tools:layout_editor_absoluteX="12dp"
+                tools:listitem="@layout/pt_cardview" />
 
             <LinearLayout
 

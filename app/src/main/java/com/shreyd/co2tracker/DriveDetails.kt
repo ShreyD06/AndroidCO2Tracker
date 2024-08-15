@@ -3,10 +3,12 @@ package com.shreyd.co2tracker
 import android.content.Intent
 import android.graphics.Color
 import android.icu.text.SimpleDateFormat
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -22,19 +24,24 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 import com.shreyd.co2tracker.model.DriveInfo
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
 class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
 
     lateinit var driveInfo: DriveInfo
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drive_details)
 
         val driveId = intent.getStringExtra("driveId")
 
-//        println(driveId)
+        println(driveId)
         val authUser = Firebase.auth.currentUser
         var email = ""
         authUser?.let{
@@ -44,8 +51,11 @@ class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
             .replace("$", "").replace("[", "").replace("]", "")
 //
         val drive = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives").child(driveId!!)
+        val dbDrive = FirebaseDatabase.getInstance().getReference("Users").child(id).child("Drives")
 
         val formatter = SimpleDateFormat("MM/dd/yyyy hh:mm", Locale.US)
+
+        val formatter2 = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
         val startTime: TextView = findViewById(R.id.startTime)
         val endTime: TextView = findViewById(R.id.endTime)
@@ -60,14 +70,31 @@ class DriveDetails : AppCompatActivity(), OnMapReadyCallback {
         }
 
 
-//        drive.get().addOnSuccessListener {
-//            val medDrive = it.getValue(Drive2::class.java)
-//            println(medDrive!!.startTime)
-//            startTime.text = formatter.format(medDrive.startTime)
-//            endTime.text = formatter.format(medDrive.endTime)
-//            distance.text = medDrive.distance
-//            emission.text = "${medDrive.emission} kg"
-//        }
+//        dbDrive.addListenerForSingleValueEvent(object: ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                println("ID: " + driveId)
+//                println("Time" + snapshot.child(driveId).child("startTime").getValue().toString())
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                println("Error")
+//            }
+//
+//        })
+        drive.get().addOnSuccessListener {
+            val medDrive = it.getValue(Drive2::class.java)
+            println(medDrive!!.startTime)
+            val instant = medDrive.startTime?.let { it1 -> Instant.ofEpochMilli(it1) }
+
+            val date = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+            println(formatter2.format(date))
+            startTime.text = formatter2.format(date)
+            endTime.text = formatter.format(medDrive.endTime)
+            println(medDrive.distance)
+            distance.text = medDrive.distance
+            emission.text = "${medDrive.emission} kg"
+            println(medDrive.emission)
+        }
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.mapFragment) as SupportMapFragment
